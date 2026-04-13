@@ -13,7 +13,7 @@ export function resolveNotificationTarget(item: NotificationItem): string {
     case 'promotion':
       return '/dashboard/promotions'
     default:
-      return '/dashboard/notifications'
+      return '/dashboard'
   }
 }
 

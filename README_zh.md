@@ -10,7 +10,7 @@
 [![许可证](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE)
 [![构建](https://github.com/iflytek/skillhub/actions/workflows/publish-images.yml/badge.svg)](https://github.com/iflytek/skillhub/actions/workflows/publish-images.yml)
 [![Docker](https://img.shields.io/badge/docker-ghcr.io-2496ED?logo=docker&logoColor=white)](https://ghcr.io/iflytek/skillhub)
-[![Java](https://img.shields.io/badge/java-21-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
+[![Go](https://img.shields.io/badge/go-1.24-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![React](https://img.shields.io/badge/react-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
 
 </div>
@@ -28,14 +28,12 @@ SkillHub 是一个自托管平台，为团队提供私有的、受治理的智�
 
 - **自托管与私有化** — 部署在您自己的基础设施上。将专有技能保留在防火墙后，完全掌控数据主权。一条 `make dev-all` 命令即可在本地运行。
 - **发布与版本管理** — 上传智能体技能包，支持语义化版本控制、自定义标签（`beta`、`stable`）和自动 `latest` 跟踪。
-- **发现** — 全文搜索，支持按命名空间、下载量、评分和时间筛选。可见性规则确保用户只能看到其有权访问的内容。
+- **发现** — 面向已发布技能的全文搜索，并按命名空间可见性控制结果范围，确保用户只能看到其有权访问的内容。
 - **团队命名空间** — 在团队或全局范围下组织技能。每个命名空间拥有自己的成员、角色（Owner / Admin / Member）和发布策略。
-- **审核与治理** — 团队管理员在其命名空间内审核；平台管理员控制向全局范围的推广。治理操作记录审计日志以满足合规要求。
-- **社交功能** — 收藏技能、评分并跟踪下载量。围绕组织的最佳实践构建社区。
-- **账户合并** — 将多个 OAuth 身份和 API 令牌整合到单个用户账户下。
-- **API 令牌管理** — 为 CLI 和程序化访问生成作用域令牌，采用基于前缀的安全哈希。
+- **审核与治理** — 团队管理员在其命名空间内审核；平台管理员控制向全局范围的推广。
+- **密码认证** — 使用用户名/密码登录，并通过 JWT 访问 API；本地开发默认提供 bootstrap 管理员。
 - **CLI 优先** — 原生 REST API，加上对现有 ClawHub 风格注册中心客户端的兼容层。原生 CLI API 是主要支持路径，协议兼容性持续扩展中。
-- **可插拔存储** — 开发环境使用本地文件系统，生产环境使用 S3 / MinIO。通过配置切换。
+- **本地文件存储** — 技能包统一保存在本地文件系统中，适用于本地开发和 Docker 部署。
 - **国际化** — 使用 i18next 支持多语言。
 
 ## 快速开始
@@ -58,7 +56,7 @@ curl -fsSL https://imageless.oss-cn-beijing.aliyuncs.com/runtime.sh | sh -s -- u
 `--public-url` 参数用于设置 SkillHub 实例的公网访问地址。配置后：
 - CLI 安装命令会显示正确的注册中心地址
 - Agent 设置指引会显示正确的 skill.md URL
-- OAuth 回调和设备认证链接能正常工作
+- CLI 安装命令和设置指引会显示正确的公开地址
 
 **国内用户（阿里云镜像）：**
 
@@ -79,14 +77,11 @@ curl -fsSL https://imageless.oss-cn-beijing.aliyuncs.com/runtime.sh | sh -s -- u
 
 ### 默认账户
 
-默认执行 `make dev-all` 时，后端以 `local` profile 启动。
-在这个模式下，本地开发会保留下面两个模拟用户，同时默认创建一个可账号密码登录的 bootstrap 管理员：
+默认执行 `make dev-all` 时，会用 Docker 启动 PostgreSQL，
+再把后端编译为 `./.dev/skillhub-server` 并直接在本机运行。
+本地开发使用与 Go 后端一致的用户名/密码 + JWT 认证流程。
 
-- `local-user` — 普通用户，用于发布和命名空间操作
-- `local-admin` — 超级管理员，用于审核和管理流程
-
-在本地开发中使用 `X-Mock-User-Id` 请求头切换用户。
-本地 bootstrap 管理员默认已在 `application-local.yml` 中开启：
+本地 bootstrap 管理员默认开启：
 
 - 用户名：`admin`
 - 密码：`ChangeMe!2026`
@@ -106,7 +101,7 @@ curl -fsSL https://imageless.oss-cn-beijing.aliyuncs.com/runtime.sh | sh -s -- u
 
 ### 前置要求
 
-- Java 21+
+- Go 1.24+
 - Node.js 20+
 - Docker & Docker Compose
 - Make
@@ -118,11 +113,11 @@ curl -fsSL https://imageless.oss-cn-beijing.aliyuncs.com/runtime.sh | sh -s -- u
 git clone https://github.com/iflytek/skillhub.git
 cd skillhub
 
-# 启动完整的本地开发栈（后端 + 前端 + 依赖）
+# 启动完整的本地开发栈（PostgreSQL + 后端二进制 + 前端）
 make dev-all
 
 # 或者分别启动
-make dev-backend    # 仅后端
+make dev-server     # 仅后端
 make dev-web        # 仅前端
 ```
 
@@ -130,34 +125,23 @@ make dev-web        # 仅前端
 
 ```bash
 make help                    # 显示所有可用命令
-make test                    # 运行后端测试
-make test-backend-app        # 运行 skillhub-app 及其依赖模块测试
-make build-backend-app       # 构建 skillhub-app 及其依赖模块
+make test                    # 运行后端和前端测试
+make test-backend            # 运行 Go 后端测试
+make build-go-backend        # 构建 Go 后端包
+make build-dev-server        # 构建本地开发使用的后端二进制
 make typecheck-web          # TypeScript 类型检查
 make build-web              # 构建前端
-make generate-api           # 重新生成 OpenAPI 类型
-./scripts/check-openapi-generated.sh  # 验证 API 契约同步
 ./scripts/smoke-test.sh http://localhost:8080  # 运行冒烟测试
 ```
-
-说明：不要在 `server/` 下直接执行 `./mvnw -pl skillhub-app clean test`。`skillhub-app` 依赖同仓库的 sibling modules，单独 clean 构建时会回退到本地 Maven 仓库里的旧产物并出现大量 `cannot find symbol` / 签名不匹配错误。需要使用 `-am`，或者直接使用上面的 `make test-backend-app` / `make build-backend-app`。
 
 ### 项目结构
 
 ```
 skillhub/
-├── server/                 # 后端（Java/Spring Boot）
-│   ├── skillhub-app/      # 主应用程序
-│   ├── skillhub-domain/   # 核心业务逻辑
-│   ├── skillhub-auth/     # 认证授权
-│   ├── skillhub-search/   # 搜索功能
-│   ├── skillhub-storage/  # 存储层
-│   └── skillhub-infra/    # 基础设施
+├── backend/               # 后端（Go 模块化单体）
 ├── web/                   # 前端（React/TypeScript）
 ├── docs/                  # 文档
 ├── scripts/               # 实用脚本
-├── deploy/                # 部署配置
-├── monitoring/            # Prometheus + Grafana
 ├── Makefile              # 常用任务
 └── docker-compose.yml    # 本地开发栈
 ```
@@ -182,92 +166,62 @@ curl -fsSL https://imageless.oss-cn-beijing.aliyuncs.com/runtime.sh | sh -s -- u
 | `--version <tag>` | 指定镜像版本 | `--version v0.2.0` |
 | `--aliyun` | 使用阿里云镜像（国内推荐） | `--aliyun` |
 | `--home <dir>` | 指定运行时目录 | `--home /opt/skillhub` |
-| `--no-scanner` | 禁用安全扫描服务 | `--no-scanner` |
-
 > **重要**：生产环境请务必配置 `--public-url`，确保 CLI 安装命令和 Agent 设置指引显示正确的地址。
-
-### 使用 Kubernetes
-
-```bash
-# 应用 Kubernetes 清单
-kubectl apply -f deploy/k8s/
-
-# 或使用 Helm（即将推出）
-helm install skillhub ./deploy/helm
-```
 
 ### 环境变量
 
 关键配置选项：
 
 ```bash
-# 数据库
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/skillhub
-SPRING_DATASOURCE_USERNAME=skillhub
-SPRING_DATASOURCE_PASSWORD=skillhub
+# 后端
+DATABASE_URL=postgres://skillhub:skillhub_dev@localhost:5432/skillhub?sslmode=disable
+BACKEND_HTTP_PORT=8080
+BACKEND_JWT_SECRET=your-secret-key
 
-# Redis
-SPRING_DATA_REDIS_HOST=localhost
-SPRING_DATA_REDIS_PORT=6379
+# 存储
+STORAGE_BASE_PATH=/var/lib/skillhub/packages
 
-# 存储（S3/MinIO）
-STORAGE_TYPE=s3
-STORAGE_S3_ENDPOINT=http://localhost:9000
-STORAGE_S3_ACCESS_KEY=minioadmin
-STORAGE_S3_SECRET_KEY=minioadmin
-STORAGE_S3_BUCKET=skillhub
-
-# 认证
-AUTH_JWT_SECRET=your-secret-key
-AUTH_SESSION_TIMEOUT=30m
+# bootstrap 管理员
+BOOTSTRAP_ADMIN_ENABLED=true
+BOOTSTRAP_ADMIN_USERNAME=admin
+BOOTSTRAP_ADMIN_PASSWORD=ChangeMe!2026
 ```
-
-完整配置参考请查看 [`application.yml`](./server/skillhub-app/src/main/resources/application.yml)。
 
 ### 上传白名单覆盖
 
-技能包上传校验默认使用
-[`SkillPackagePolicy.java`](./server/skillhub-domain/src/main/java/com/iflytek/skillhub/domain/skill/validation/SkillPackagePolicy.java)
-中的扩展名白名单。`SkillPublishProperties` 默认也会把这份列表作为
-`skillhub.publish.allowed-file-extensions` 的值。
-
-如果需要在运行时整体替换默认白名单，可以设置：
+如果需要在运行时整体替换默认上传白名单，可以设置：
 
 ```bash
 SKILLHUB_PUBLISH_ALLOWED_FILE_EXTENSIONS=.md,.json,.xsd,.xsl,.dtd,.docx,.xlsx,.pptx
 ```
 
-Spring Boot 会把这个环境变量绑定到
-`skillhub.publish.allowed-file-extensions`。一旦设置，该配置会替换默认白名单，
-而不是在默认列表后追加。
+设置后会替换默认白名单，而不是在默认列表后追加。
 
 ## 架构
 
 SkillHub 采用清晰的分层架构：
 
-- **表现层**：REST API（Spring Boot）+ React 前端
+- **表现层**：REST API（Go）+ React 前端
 - **应用层**：用例编排和 DTO 转换
 - **领域层**：核心业务逻辑和实体
 - **基础设施层**：数据库、存储、搜索
 
 关键设计决策：
 
-- **多模块 Maven 项目**：清晰的模块边界和依赖管理
-- **领域驱动设计**：丰富的领域模型和业务规则
-- **CQRS 模式**：读写分离以优化性能
-- **事件溯源**：审计日志和治理操作
-- **可插拔存储**：通过配置在本地/S3/MinIO 之间切换
+- **模块化单体**：按认证、命名空间、技能、审核、搜索拆分边界
+- **Go 服务层**：通过清晰接口组合仓储、存储和 HTTP 路由
+- **PostgreSQL 优先**：数据和全文搜索都落在 PostgreSQL 中
+- **本地文件存储**：统一使用本地文件系统保存技能包
 
 详细架构文档请参阅 [`docs/`](./docs/) 目录。
 
 ## 技术栈
 
 ### 后端
-- **语言**：Java 21
-- **框架**：Spring Boot 3.2.3
-- **数据库**：PostgreSQL 16 + Flyway 迁移
-- **缓存**：Redis 7
-- **存储**：S3/MinIO
+- **语言**：Go 1.24
+- **框架**：chi + 标准库 HTTP
+- **数据库**：PostgreSQL 16 + 仓库内迁移工具
+- **存储**：本地文件系统
 - **搜索**：PostgreSQL 全文搜索
 
 ### 前端
@@ -277,13 +231,11 @@ SkillHub 采用清晰的分层架构：
 - **路由**：TanStack Router
 - **数据获取**：TanStack Query
 - **样式**：Tailwind CSS + Radix UI
-- **API 客户端**：OpenAPI TypeScript（类型安全）
+- **API 客户端**：手写类型 + `fetch`
 - **国际化**：i18next
 
 ### 基础设施
 - **容器化**：Docker & Docker Compose
-- **监控**：Prometheus + Grafana
-- **部署**：Kubernetes 清单
 - **CI/CD**：GitHub Actions
 
 ## 路线图

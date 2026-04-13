@@ -6,7 +6,6 @@ export function getSkillSquareSearch() {
     q: '',
     sort: 'relevance' as const,
     page: 0,
-    starredOnly: false,
   }
 }
 

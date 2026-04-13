@@ -66,10 +66,6 @@ export function incrementSkillDownloadCount(
     ['skills', 'my'],
     (current) => incrementSummaryList(current, target),
   )
-  queryClient.setQueryData<SkillSummary[]>(
-    ['skills', 'stars'],
-    (current) => incrementSummaryList(current, target),
-  )
   queryClient.setQueriesData<PagedResponse<SkillSummary>>(
     { queryKey: ['skills', 'search'] },
     (current) => incrementPagedSummaryList(current, target),

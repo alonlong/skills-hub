@@ -1,8 +1,7 @@
-import createClient from 'openapi-fetch'
-import type { paths } from './generated/schema'
 import type {
   ChangePasswordRequest,
   ApiToken,
+  AuthLoginResponse,
   CreateTokenRequest,
   CreateTokenResponse,
   MergeConfirmRequest,
@@ -43,7 +42,7 @@ import { ApiError } from '@/shared/lib/api-error'
 import i18n from '@/i18n/config'
 
 /**
- * Front-end API foundation for generated OpenAPI calls and hand-written convenience wrappers.
+ * Front-end API foundation for hand-written API calls and convenience wrappers.
  *
  * This module centralizes runtime-config lookup, CSRF handling, localized request headers, envelope
  * unwrapping, and exported API groups used throughout feature hooks.
@@ -61,6 +60,8 @@ type RuntimeConfig = {
   authSessionBootstrapProvider?: string
   authSessionBootstrapAuto?: string
 }
+
+const ACCESS_TOKEN_STORAGE_KEY = 'skillhub.accessToken'
 
 declare global {
   interface Window {
@@ -85,8 +86,6 @@ function parseBooleanFlag(value: string | undefined): boolean {
   }
   return ['1', 'true', 'yes', 'on'].includes(value.trim().toLowerCase())
 }
-
-const client = createClient<paths>({ baseUrl: getApiBaseUrl() })
 
 function getCsrfToken(): string | null {
   const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/)
@@ -114,11 +113,6 @@ function withCsrf(headers?: HeadersInit): HeadersInit {
 }
 
 async function ensureCsrfHeaders(headers?: HeadersInit): Promise<HeadersInit> {
-  if (!getCsrfToken()) {
-    await client.GET('/api/v1/auth/providers', {
-      headers: withRequestHeaders(),
-    } as never)
-  }
   return withCsrf(headers)
 }
 
@@ -218,10 +212,10 @@ export async function fetchJson<T>(input: RequestInfo | URL, init?: RequestWithT
     cleanup()
   }
 
-  let json: ApiEnvelope<T> | null = null
+  let json: unknown
 
   try {
-    json = (await response.json()) as ApiEnvelope<T>
+    json = await response.json()
   } catch {
     if (!response.ok) {
       throw new ApiError(`HTTP ${response.status}`, response.status)
@@ -229,11 +223,21 @@ export async function fetchJson<T>(input: RequestInfo | URL, init?: RequestWithT
     throw new ApiError('Invalid JSON response', response.status)
   }
 
-  if (!response.ok || json.code !== 0) {
-    throw new ApiError(json.msg || `HTTP ${response.status}`, response.status, json.msg, json.msg)
+  if (!response.ok) {
+    if (isApiEnvelope<T>(json)) {
+      throw new ApiError(json.msg || `HTTP ${response.status}`, response.status, json.msg, json.msg)
+    }
+    throw new ApiError(`HTTP ${response.status}`, response.status)
   }
 
-  return json.data
+  if (isApiEnvelope<T>(json)) {
+    if (json.code !== 0) {
+      throw new ApiError(json.msg || `HTTP ${response.status}`, response.status, json.msg, json.msg)
+    }
+    return json.data
+  }
+
+  return json as T
 }
 
 export async function fetchText(input: RequestInfo | URL, init?: RequestInit): Promise<string> {
@@ -268,8 +272,17 @@ function ensureTrailingSlash(value: string): string {
 }
 
 export async function getCurrentUser(): Promise<User | null> {
+  const token = typeof window !== 'undefined' ? window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY) : null
+  if (!token) {
+    return null
+  }
+
   try {
-    const user = await fetchJson<User>('/api/v1/auth/me')
+    const user = await fetchJson<User>('/api/v1/auth/me', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
     return {
       ...user,
       userId: user.userId ?? '',
@@ -278,6 +291,9 @@ export async function getCurrentUser(): Promise<User | null> {
     }
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
+      }
       return null
     }
     throw error
@@ -315,12 +331,12 @@ export const authApi = {
       }))
   },
 
-  async localLogin(request: LocalLoginRequest): Promise<User> {
-    return fetchJson<User>('/api/v1/auth/local/login', {
+  async localLogin(request: LocalLoginRequest): Promise<AuthLoginResponse> {
+    return fetchJson<AuthLoginResponse>('/api/v1/auth/login', {
       method: 'POST',
-      headers: await ensureCsrfHeaders({
+      headers: {
         'Content-Type': 'application/json',
-      }),
+      },
       body: JSON.stringify(request),
     })
   },
@@ -346,12 +362,8 @@ export const authApi = {
   },
 
   async logout(): Promise<void> {
-    const response = await fetch('/api/v1/auth/logout', {
-      method: 'POST',
-      headers: withCsrf(),
-    })
-    if (response.status !== 200 && response.status !== 204) {
-      throw new Error(`HTTP ${response.status}`)
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
     }
   },
 
@@ -715,21 +727,24 @@ export const tokenApi = {
   },
 
   async deleteToken(tokenId: number): Promise<void> {
-    const { error, response } = await client.DELETE('/api/v1/tokens/{id}', {
-      params: {
-        path: {
-          id: tokenId,
-        },
-      },
+    const response = await fetch(withBaseUrl(`/api/v1/tokens/${tokenId}`), {
+      method: 'DELETE',
       headers: withCsrf(),
-    } as never)
+    })
 
-    if (response.status === 204) {
+    if (response.status === 204 || response.status === 200) {
       return
     }
 
-    const envelope = (error && isApiEnvelope<void>(error) ? error : null) as { msg?: string } | null
-    if (!response.ok || error) {
+    let payload: unknown = null
+    try {
+      payload = await response.json()
+    } catch {
+      payload = null
+    }
+
+    const envelope = isApiEnvelope<void>(payload) ? payload : null
+    if (!response.ok) {
       throw new ApiError(envelope?.msg || `HTTP ${response.status}`, response.status, envelope?.msg, envelope?.msg)
     }
   },
@@ -923,30 +938,6 @@ export const meApi = {
       searchParams.set('filter', params.filter)
     }
     return fetchJson<{ items: SkillSummary[]; total: number; page: number; size: number }>(`${WEB_API_PREFIX}/me/skills?${searchParams.toString()}`)
-  },
-
-  async getStarsPage(params?: { page?: number; size?: number }): Promise<{ items: SkillSummary[]; total: number; page: number; size: number }> {
-    const searchParams = new URLSearchParams()
-    searchParams.set('page', String(params?.page ?? 0))
-    searchParams.set('size', String(params?.size ?? 12))
-    return fetchJson<{ items: SkillSummary[]; total: number; page: number; size: number }>(`${WEB_API_PREFIX}/me/stars?${searchParams.toString()}`)
-  },
-
-  async getStars(): Promise<SkillSummary[]> {
-    const items: SkillSummary[] = []
-    let page = 0
-    const size = 100
-    let hasMore = true
-
-    while (hasMore) {
-      const response = await meApi.getStarsPage({ page, size })
-      items.push(...response.items)
-
-      hasMore = (page + 1) * response.size < response.total && response.items.length > 0
-      page += 1
-    }
-
-    return items
   },
 }
 

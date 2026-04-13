@@ -7,7 +7,6 @@
 
 - [ ] Backend tests passed
 - [ ] Frontend typecheck/build passed
-- [ ] OpenAPI SDK regenerated or checked when API contracts changed
 - [ ] Smoke test run when relevant
 
 Commands run:

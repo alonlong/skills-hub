@@ -4,188 +4,132 @@ set -euo pipefail
 BASE_URL="${1:-http://localhost:8080}"
 PASS=0
 FAIL=0
-COOKIE_JAR="$(mktemp)"
-USERNAME="smoketest_$(date +%s)"
-EMAIL="${USERNAME}@example.com"
-PASSWORD="Smoke@2026"
-NEW_PASSWORD="Smoke@2027"
+NAMESPACE_SLUG="smoke-$(date +%s)"
+SKILL_SLUG="email-helper"
+VERSION="1.0.0"
+ARCHIVE_PATH="$(mktemp "/tmp/skillhub-smoke-archive-XXXXXX.zip")"
 
 cleanup() {
-  rm -f "$COOKIE_JAR"
+  rm -f "$ARCHIVE_PATH"
 }
 
 trap cleanup EXIT
 
-check() {
+pass() {
+  echo "PASS: $1"
+  PASS=$((PASS + 1))
+}
+
+fail() {
+  echo "FAIL: $1"
+  FAIL=$((FAIL + 1))
+}
+
+check_status() {
   local desc="$1"
-  local url="$2"
+  local actual="$2"
   local expected="$3"
-  local status
-  status="$(curl --retry 3 --retry-delay 1 --max-time 10 -s -o /dev/null -w "%{http_code}" "$url" || true)"
-  if [[ "$status" == "$expected" ]]; then
-    echo "PASS: $desc (HTTP $status)"
-    PASS=$((PASS + 1))
+  if [[ "$actual" == "$expected" ]]; then
+    pass "$desc (HTTP $actual)"
   else
-    echo "FAIL: $desc (expected $expected, got $status)"
-    FAIL=$((FAIL + 1))
+    fail "$desc (expected $expected, got $actual)"
   fi
+}
+
+ADMIN_USERNAME="${BOOTSTRAP_ADMIN_USERNAME:-admin}"
+ADMIN_PASSWORD="${BOOTSTRAP_ADMIN_PASSWORD:-ChangeMe!2026}"
+
+json_field() {
+  local json="$1"
+  local expr="$2"
+  JSON_INPUT="$json" python3 - "$expr" <<'PY'
+import json
+import os
+import sys
+
+expr = sys.argv[1]
+value = json.loads(os.environ["JSON_INPUT"])
+for part in expr.split("."):
+    if part.isdigit():
+        value = value[int(part)]
+    else:
+        value = value[part]
+if isinstance(value, (dict, list)):
+    print(json.dumps(value))
+else:
+    print(value)
+PY
+}
+
+create_skill_archive() {
+  python3 - "$ARCHIVE_PATH" <<'PY'
+import json
+import sys
+import zipfile
+
+archive_path = sys.argv[1]
+with zipfile.ZipFile(archive_path, "w") as zf:
+    zf.writestr("manifest.json", json.dumps({
+        "version": "1.0.0",
+        "displayName": "Email Helper",
+        "summary": "Send and summarize email",
+    }))
+    zf.writestr("SKILL.md", "# Email Helper\n\nSmoke test package.\n")
+PY
 }
 
 echo "=== SkillHub Smoke Test ==="
 echo "Target: $BASE_URL"
+echo "Namespace: $NAMESPACE_SLUG"
 echo
 
-check "Health endpoint" "$BASE_URL/actuator/health" "200"
-check "Prometheus metrics" "$BASE_URL/actuator/prometheus" "200"
-check "Namespaces API" "$BASE_URL/api/v1/namespaces" "200"
-check "Auth required" "$BASE_URL/api/v1/auth/me" "401"
+HEALTH_STATUS="$(curl --retry 3 --retry-delay 1 --max-time 10 -s -o /dev/null -w "%{http_code}" "$BASE_URL/healthz" || true)"
+status="$HEALTH_STATUS"; check_status "Health endpoint" "$HEALTH_STATUS" "200"
 
-curl -s -c "$COOKIE_JAR" "$BASE_URL/api/v1/auth/me" >/dev/null
-CSRF_TOKEN="$(awk '$6 == "XSRF-TOKEN" { print $7 }' "$COOKIE_JAR" | tail -n 1)"
+UNAUTHORIZED_STATUS="$(curl --retry 3 --retry-delay 1 --max-time 10 -s -o /dev/null -w "%{http_code}" "$BASE_URL/api/v1/auth/me" || true)"
+status="$UNAUTHORIZED_STATUS"; check_status "Auth endpoint requires a token" "$UNAUTHORIZED_STATUS" "401"
 
-REGISTER_STATUS="$(curl --max-time 10 -s -o /dev/null -w "%{http_code}" \
-  -X POST "$BASE_URL/api/v1/auth/local/register" \
-  -b "$COOKIE_JAR" \
-  -c "$COOKIE_JAR" \
-  -H "X-XSRF-TOKEN: $CSRF_TOKEN" \
+LOGIN_RESPONSE="$(curl --retry 3 --retry-delay 1 --max-time 10 -sS \
   -H "Content-Type: application/json" \
-  -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\",\"email\":\"$EMAIL\"}" || true)"
-if [[ "$REGISTER_STATUS" == "200" ]]; then
-  echo "PASS: Register (HTTP $REGISTER_STATUS)"
-  PASS=$((PASS + 1))
-else
-  echo "FAIL: Register (got $REGISTER_STATUS)"
-  FAIL=$((FAIL + 1))
-fi
-
-AUTH_ME_STATUS="$(curl --max-time 10 -s -o /dev/null -w "%{http_code}" -b "$COOKIE_JAR" "$BASE_URL/api/v1/auth/me" || true)"
-if [[ "$AUTH_ME_STATUS" == "200" ]]; then
-  echo "PASS: Auth me with session (HTTP $AUTH_ME_STATUS)"
-  PASS=$((PASS + 1))
-else
-  echo "FAIL: Auth me with session (got $AUTH_ME_STATUS)"
-  FAIL=$((FAIL + 1))
-fi
-
-CHANGE_PASSWORD_STATUS="$(curl --max-time 10 -s -o /dev/null -w "%{http_code}" \
-  -X POST "$BASE_URL/api/v1/auth/local/change-password" \
-  -b "$COOKIE_JAR" \
-  -H "X-XSRF-TOKEN: $CSRF_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "{\"currentPassword\":\"$PASSWORD\",\"newPassword\":\"$NEW_PASSWORD\"}" || true)"
-if [[ "$CHANGE_PASSWORD_STATUS" == "200" ]]; then
-  echo "PASS: Change password (HTTP $CHANGE_PASSWORD_STATUS)"
-  PASS=$((PASS + 1))
-else
-  echo "FAIL: Change password (got $CHANGE_PASSWORD_STATUS)"
-  FAIL=$((FAIL + 1))
-fi
-
-LOGOUT_STATUS="$(curl --max-time 10 -s -o /dev/null -w "%{http_code}" \
-  -X POST "$BASE_URL/api/v1/auth/logout" \
-  -b "$COOKIE_JAR" \
-  -c "$COOKIE_JAR" \
-  -H "X-XSRF-TOKEN: $CSRF_TOKEN" || true)"
-if [[ "$LOGOUT_STATUS" == "302" || "$LOGOUT_STATUS" == "200" || "$LOGOUT_STATUS" == "204" ]]; then
-  echo "PASS: Logout (HTTP $LOGOUT_STATUS)"
-  PASS=$((PASS + 1))
-else
-  echo "FAIL: Logout (got $LOGOUT_STATUS)"
-  FAIL=$((FAIL + 1))
-fi
-
-POST_LOGOUT_STATUS="$(curl --max-time 10 -s -o /dev/null -w "%{http_code}" -b "$COOKIE_JAR" "$BASE_URL/api/v1/auth/me" || true)"
-if [[ "$POST_LOGOUT_STATUS" == "401" ]]; then
-  echo "PASS: Auth me after logout (HTTP $POST_LOGOUT_STATUS)"
-  PASS=$((PASS + 1))
-else
-  echo "FAIL: Auth me after logout (got $POST_LOGOUT_STATUS)"
-  FAIL=$((FAIL + 1))
-fi
-
-# ---- Label Management (requires admin) ----
-ADMIN_USERNAME="${BOOTSTRAP_ADMIN_USERNAME:-admin}"
-ADMIN_PASSWORD="${BOOTSTRAP_ADMIN_PASSWORD:-ChangeMe!2026}"
-ADMIN_COOKIE_JAR="$(mktemp)"
-LABEL_SLUG="smoke-label-$(date +%s)"
-
-cleanup_admin() {
-  rm -f "$ADMIN_COOKIE_JAR"
-}
-trap 'cleanup; cleanup_admin' EXIT
-
-# Get CSRF token for admin session
-curl -s -c "$ADMIN_COOKIE_JAR" "$BASE_URL/api/v1/auth/me" >/dev/null
-ADMIN_CSRF="$(awk '$6 == "XSRF-TOKEN" { print $7 }' "$ADMIN_COOKIE_JAR" | tail -n 1)"
-
-# Login as admin
-ADMIN_LOGIN_STATUS="$(curl --max-time 10 -s -o /dev/null -w "%{http_code}" \
-  -X POST "$BASE_URL/api/v1/auth/local/login" \
-  -b "$ADMIN_COOKIE_JAR" \
-  -c "$ADMIN_COOKIE_JAR" \
-  -H "X-XSRF-TOKEN: $ADMIN_CSRF" \
-  -H "Content-Type: application/json" \
+  -X POST "$BASE_URL/api/v1/auth/login" \
   -d "{\"username\":\"$ADMIN_USERNAME\",\"password\":\"$ADMIN_PASSWORD\"}" || true)"
-if [[ "$ADMIN_LOGIN_STATUS" == "200" ]]; then
-  echo "PASS: Admin login (HTTP $ADMIN_LOGIN_STATUS)"
-  PASS=$((PASS + 1))
+LOGIN_TOKEN="$(json_field "$LOGIN_RESPONSE" "accessToken" 2>/dev/null || true)"
+if [[ -n "$LOGIN_TOKEN" ]]; then
+  pass "Bootstrap admin can log in"
 else
-  echo "FAIL: Admin login (got $ADMIN_LOGIN_STATUS)"
-  FAIL=$((FAIL + 1))
+  fail "Bootstrap admin login failed"
 fi
 
-# Refresh CSRF after login
-ADMIN_CSRF="$(awk '$6 == "XSRF-TOKEN" { print $7 }' "$ADMIN_COOKIE_JAR" | tail -n 1)"
+AUTH_HEADER=(-H "Authorization: Bearer $LOGIN_TOKEN")
 
-# Create label definition
-CREATE_LABEL_STATUS="$(curl --max-time 10 -s -o /dev/null -w "%{http_code}" \
-  -X POST "$BASE_URL/api/v1/admin/labels" \
-  -b "$ADMIN_COOKIE_JAR" \
-  -H "X-XSRF-TOKEN: $ADMIN_CSRF" \
+ME_STATUS="$(curl --retry 3 --retry-delay 1 --max-time 10 -s -o /dev/null -w "%{http_code}" "${AUTH_HEADER[@]}" "$BASE_URL/api/v1/auth/me" || true)"
+status="$ME_STATUS"; check_status "Authenticated user can fetch /auth/me" "$ME_STATUS" "200"
+
+CREATE_NAMESPACE_STATUS="$(curl --retry 3 --retry-delay 1 --max-time 10 -s -o /tmp/skillhub-smoke-namespace.json -w "%{http_code}" \
+  "${AUTH_HEADER[@]}" \
   -H "Content-Type: application/json" \
-  -d "{\"slug\":\"$LABEL_SLUG\",\"type\":\"RECOMMENDED\",\"visibleInFilter\":true,\"sortOrder\":99,\"translations\":[{\"locale\":\"en\",\"displayName\":\"Smoke Label\"}]}" || true)"
-if [[ "$CREATE_LABEL_STATUS" == "200" ]]; then
-  echo "PASS: Create label definition (HTTP $CREATE_LABEL_STATUS)"
-  PASS=$((PASS + 1))
-else
-  echo "FAIL: Create label definition (got $CREATE_LABEL_STATUS)"
-  FAIL=$((FAIL + 1))
-fi
+  -X POST "$BASE_URL/api/v1/namespaces" \
+  -d "{\"slug\":\"$NAMESPACE_SLUG\",\"displayName\":\"Smoke Namespace\",\"type\":\"TEAM\",\"description\":\"Smoke test namespace\"}" || true)"
+status="$CREATE_NAMESPACE_STATUS"; check_status "Create namespace" "$CREATE_NAMESPACE_STATUS" "201"
 
-# List admin label definitions
-LIST_LABELS_STATUS="$(curl --max-time 10 -s -o /dev/null -w "%{http_code}" \
-  -b "$ADMIN_COOKIE_JAR" "$BASE_URL/api/v1/admin/labels" || true)"
-if [[ "$LIST_LABELS_STATUS" == "200" ]]; then
-  echo "PASS: List admin label definitions (HTTP $LIST_LABELS_STATUS)"
-  PASS=$((PASS + 1))
-else
-  echo "FAIL: List admin label definitions (got $LIST_LABELS_STATUS)"
-  FAIL=$((FAIL + 1))
-fi
+GET_NAMESPACE_STATUS="$(curl --retry 3 --retry-delay 1 --max-time 10 -s -o /tmp/skillhub-smoke-get-namespace.json -w "%{http_code}" \
+  "$BASE_URL/api/v1/namespaces/$NAMESPACE_SLUG" || true)"
+status="$GET_NAMESPACE_STATUS"; check_status "Fetch namespace by slug" "$GET_NAMESPACE_STATUS" "200"
 
-# List visible labels (public)
-VISIBLE_LABELS_STATUS="$(curl --max-time 10 -s -o /dev/null -w "%{http_code}" \
-  "$BASE_URL/api/v1/labels" || true)"
-if [[ "$VISIBLE_LABELS_STATUS" == "200" ]]; then
-  echo "PASS: List visible labels (HTTP $VISIBLE_LABELS_STATUS)"
-  PASS=$((PASS + 1))
-else
-  echo "FAIL: List visible labels (got $VISIBLE_LABELS_STATUS)"
-  FAIL=$((FAIL + 1))
-fi
+create_skill_archive
+PUBLISH_STATUS="$(curl --retry 3 --retry-delay 1 --max-time 20 -s -o /tmp/skillhub-smoke-publish.json -w "%{http_code}" \
+  "${AUTH_HEADER[@]}" \
+  -F "file=@$ARCHIVE_PATH;type=application/zip" \
+  -X POST "$BASE_URL/api/v1/skills/$NAMESPACE_SLUG/$SKILL_SLUG/versions" || true)"
+status="$PUBLISH_STATUS"; check_status "Publish skill version" "$PUBLISH_STATUS" "201"
 
-# Delete label definition (cleanup)
-DELETE_LABEL_STATUS="$(curl --max-time 10 -s -o /dev/null -w "%{http_code}" \
-  -X DELETE "$BASE_URL/api/v1/admin/labels/$LABEL_SLUG" \
-  -b "$ADMIN_COOKIE_JAR" \
-  -H "X-XSRF-TOKEN: $ADMIN_CSRF" || true)"
-if [[ "$DELETE_LABEL_STATUS" == "200" || "$DELETE_LABEL_STATUS" == "204" ]]; then
-  echo "PASS: Delete label definition (HTTP $DELETE_LABEL_STATUS)"
-  PASS=$((PASS + 1))
-else
-  echo "FAIL: Delete label definition (got $DELETE_LABEL_STATUS)"
-  FAIL=$((FAIL + 1))
-fi
+DOWNLOAD_STATUS="$(curl --retry 3 --retry-delay 1 --max-time 20 -s -o /tmp/skillhub-smoke-download.zip -w "%{http_code}" \
+  "$BASE_URL/api/v1/skills/$NAMESPACE_SLUG/$SKILL_SLUG/versions/$VERSION/download" || true)"
+status="$DOWNLOAD_STATUS"; check_status "Download published archive" "$DOWNLOAD_STATUS" "200"
+
+SEARCH_STATUS="$(curl --retry 3 --retry-delay 1 --max-time 10 -s -o /tmp/skillhub-smoke-search.json -w "%{http_code}" \
+  "$BASE_URL/api/v1/search?q=email" || true)"
+status="$SEARCH_STATUS"; check_status "Search endpoint responds" "$SEARCH_STATUS" "200"
 
 echo
 echo "Results: $PASS passed, $FAIL failed"

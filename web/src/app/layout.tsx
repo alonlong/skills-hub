@@ -160,7 +160,7 @@ export function Layout() {
                   <li>
                     <Link
                       to="/search"
-                      search={{ q: '', sort: 'relevance', page: 0, starredOnly: false }}
+                      search={{ q: '', sort: 'relevance', page: 0 }}
                       className="hover:opacity-80 transition-opacity"
                       style={{ color: 'hsl(var(--text-secondary))' }}
                     >

@@ -6,14 +6,6 @@ async function getMySkills(params: { page?: number; size?: number; filter?: stri
   return meApi.getSkills(params)
 }
 
-async function getMyStars(): Promise<SkillSummary[]> {
-  return meApi.getStars()
-}
-
-async function getMyStarsPage(params: { page?: number; size?: number } = {}): Promise<PagedResponse<SkillSummary>> {
-  return meApi.getStarsPage(params)
-}
-
 async function submitPromotion(params: { sourceSkillId: number; sourceVersionId: number }): Promise<void> {
   const globalNamespace = await namespaceApi.getDetail('global')
   await promotionApi.submit({
@@ -27,22 +19,6 @@ export function useMySkills(params: { page?: number; size?: number; filter?: str
   return useQuery({
     queryKey: ['skills', 'my', params],
     queryFn: () => getMySkills(params),
-  })
-}
-
-export function useMyStars(enabled = true) {
-  return useQuery({
-    queryKey: ['skills', 'stars'],
-    queryFn: getMyStars,
-    enabled,
-  })
-}
-
-export function useMyStarsPage(params: { page?: number; size?: number } = {}, enabled = true) {
-  return useQuery({
-    queryKey: ['skills', 'stars', 'page', params],
-    queryFn: () => getMyStarsPage(params),
-    enabled,
   })
 }
 

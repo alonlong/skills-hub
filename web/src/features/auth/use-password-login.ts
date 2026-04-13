@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { authApi, getDirectAuthRuntimeConfig } from '@/api/client'
+import { authApi } from '@/api/client'
 import { ApiError } from '@/shared/lib/api-error'
 import type { LocalLoginRequest, User } from '@/api/types'
 import { clearSessionScopedQueries } from '@/features/notification/notification-session'
@@ -10,16 +10,11 @@ import { clearSessionScopedQueries } from '@/features/notification/notification-
  */
 export function usePasswordLogin() {
   const queryClient = useQueryClient()
-  const directAuthConfig = getDirectAuthRuntimeConfig()
 
   return useMutation({
-    mutationFn: (request: LocalLoginRequest) => {
-      if (directAuthConfig.enabled && directAuthConfig.provider) {
-        return authApi.directLogin(directAuthConfig.provider, request)
-      }
-      return authApi.localLogin(request)
-    },
-    onSuccess: (user) => {
+    mutationFn: (request: LocalLoginRequest) => authApi.localLogin(request),
+    onSuccess: ({ accessToken, user }) => {
+      window.localStorage.setItem('skillhub.accessToken', accessToken)
       clearSessionScopedQueries(queryClient)
       queryClient.setQueryData<User | null>(['auth', 'me'], user)
     },

@@ -154,9 +154,6 @@ export function UserMenu({ user, triggerClassName }: UserMenuProps) {
                 {t('user.menu.governance')}
               </Link>
             ) : null}
-            <Link to="/dashboard/stars" className={menuItemClassName} onClick={closeMenu}>
-              {t('user.menu.stars')}
-            </Link>
             {canAccessReviewCenter ? (
               <Link to="/dashboard/reviews" className={menuItemClassName} onClick={closeMenu}>
                 {t('user.menu.reviews')}
@@ -191,9 +188,6 @@ export function UserMenu({ user, triggerClassName }: UserMenuProps) {
             <div className="-mx-1 my-1 h-px bg-muted" />
             <Link to="/settings/profile" className={menuItemClassName} onClick={closeMenu}>
               {t('user.menu.profile')}
-            </Link>
-            <Link to="/settings/notifications" className={menuItemClassName} onClick={closeMenu}>
-              {t('user.menu.notifications')}
             </Link>
             {isLocalAccount ? (
               <Link to="/settings/security" className={menuItemClassName} onClick={closeMenu}>

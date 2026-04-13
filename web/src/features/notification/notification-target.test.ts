@@ -81,7 +81,7 @@ describe('resolveNotificationTarget', () => {
     })).toBe('/dashboard/promotions')
   })
 
-  it('falls back to notifications page for unsupported items', () => {
+  it('falls back to the dashboard for unsupported items', () => {
     expect(resolveNotificationTarget({
       id: 1,
       category: 'PUBLISH',
@@ -91,6 +91,6 @@ describe('resolveNotificationTarget', () => {
       entityId: 55,
       status: 'UNREAD',
       createdAt: '2026-03-20T00:00:00Z',
-    })).toBe('/dashboard/notifications')
+    })).toBe('/dashboard')
   })
 })

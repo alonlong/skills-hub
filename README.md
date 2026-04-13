@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE)
 [![Build](https://github.com/iflytek/skillhub/actions/workflows/publish-images.yml/badge.svg)](https://github.com/iflytek/skillhub/actions/workflows/publish-images.yml)
 [![Docker](https://img.shields.io/badge/docker-ghcr.io-2496ED?logo=docker&logoColor=white)](https://ghcr.io/iflytek/skillhub)
-[![Java](https://img.shields.io/badge/java-21-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
+[![Go](https://img.shields.io/badge/go-1.24-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![React](https://img.shields.io/badge/react-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
 
 </div>
@@ -43,27 +43,22 @@ firewall, with the same polish you'd expect from a public registry.
 - **Publish & Version** — Upload agent skill packages with semantic
   versioning, custom tags (`beta`, `stable`), and automatic
   `latest` tracking.
-- **Discover** — Full-text search with filters by namespace,
-  downloads, ratings, and recency. Visibility rules ensure
-  users only see what they're authorized to.
+- **Discover** — Full-text search for published skills with
+  namespace-aware visibility rules, so users only see what
+  they're authorized to access.
 - **Team Namespaces** — Organize skills under team or global scopes.
   Each namespace has its own members, roles (Owner / Admin /
   Member), and publishing policies.
 - **Review & Governance** — Team admins review within their namespace;
-  platform admins gate promotions to the global scope. Governance
-  actions are audit-logged for compliance.
-- **Social Features** — Star skills, rate them, and track downloads.
-  Build a community around your organization's best practices.
-- **Account Merging** — Consolidate multiple OAuth identities and
-  API tokens under a single user account.
-- **API Token Management** — Generate scoped tokens for CLI and
-  programmatic access with prefix-based secure hashing.
+  platform admins gate promotions to the global scope.
+- **Password Auth** — Username/password login with JWT-based API
+  access and a bootstrap admin for local setup.
 - **CLI-First** — Native REST API plus a compatibility layer for
   existing ClawHub-style registry clients. Native CLI APIs are the
   primary supported path while protocol compatibility continues to
   expand.
-- **Pluggable Storage** — Local filesystem for development, S3 /
-  MinIO for production. Swap via config.
+- **Local Storage** — Skill packages are stored on the local
+  filesystem for both development and Docker deployment.
 - **Internationalization** — Multi-language support with i18next.
 
 ## Quick Start
@@ -86,7 +81,7 @@ curl -fsSL https://imageless.oss-cn-beijing.aliyuncs.com/runtime.sh | sh -s -- u
 The `--public-url` parameter sets the public access URL for your SkillHub instance. This ensures:
 - CLI install commands show the correct registry URL
 - Agent setup instructions display the correct skill.md URL
-- OAuth callbacks and device auth links work properly
+- Shared links and setup instructions use the correct base URL
 
 **For users in China (Aliyun mirror):**
 
@@ -98,7 +93,10 @@ If deployment runs into problems, clear the existing runtime home and retry.
 
 ### Prerequisites
 
+- Go 1.24+
+- Node.js 20+
 - Docker & Docker Compose
+- Make
 
 ### Local Development
 
@@ -111,16 +109,11 @@ Then open:
 - Web UI: `http://localhost:3000`
 - Backend API: `http://localhost:8080`
 
-By default, `make dev-all` starts the backend with the `local` profile.
-In that mode, local development keeps the mock-auth users below and also
-creates a password-based bootstrap admin account by default:
+`make dev-all` starts PostgreSQL in Docker, builds the backend binary to
+`./.dev/skillhub-server`, and runs the backend directly on your machine.
+Local development uses the same username/password + JWT flow as the Go backend.
 
-- `local-user` for normal publishing and namespace operations
-- `local-admin` with `SUPER_ADMIN` for review and admin flows
-
-Use them with the `X-Mock-User-Id` header in local development.
-
-The local bootstrap admin is enabled by default in `application-local.yml`:
+The local bootstrap admin is enabled by default:
 
 - username: `admin`
 - password: `ChangeMe!2026`
@@ -144,36 +137,13 @@ Useful backend commands:
 
 ```bash
 make test
-make test-backend-app
-make build-backend-app
+make test-backend
+make build-go-backend
+make build-dev-server
+make dev-server
 ```
-
-Do not run `./mvnw -pl skillhub-app clean test` directly under `server/`.
-`skillhub-app` depends on sibling modules in the same repo, and a standalone clean build
-can fall back to stale artifacts from the local Maven repository, which surfaces misleading
-`cannot find symbol` and signature-mismatch errors. Use `-am`, or the `make test-backend-app`
-and `make build-backend-app` targets above.
 
 For the full development workflow (local dev → staging → PR), see [docs/dev-workflow.md](docs/dev-workflow.md).
-
-### API Contract Sync
-
-OpenAPI types for the web client are checked into the repository.
-When backend API contracts change, regenerate the SDK and commit the
-updated generated file:
-
-```bash
-make generate-api
-```
-
-For a stricter end-to-end drift check, run:
-
-```bash
-./scripts/check-openapi-generated.sh
-```
-
-This starts local dependencies, boots the backend, regenerates the
-frontend schema, and fails if the checked-in SDK is stale.
 
 ### Container Runtime
 
@@ -200,8 +170,6 @@ curl -fsSL https://imageless.oss-cn-beijing.aliyuncs.com/runtime.sh | sh -s -- u
 | `--version <tag>` | Specific image tag | `--version v0.2.0` |
 | `--aliyun` | Use Aliyun mirror (China) | `--aliyun` |
 | `--home <dir>` | Runtime directory | `--home /opt/skillhub` |
-| `--no-scanner` | Disable security scanner | `--no-scanner` |
-
 > **Important**: Configure `--public-url` for production deployments to ensure CLI install commands and Agent setup instructions display the correct URLs.
 
 **Manual deployment:**
@@ -251,8 +219,7 @@ enables the bootstrap admin by default, so zero-config quickstart via
 Recommended production baseline:
 
 - set `SKILLHUB_PUBLIC_BASE_URL` to the final HTTPS entrypoint
-- keep PostgreSQL / Redis bound to `127.0.0.1`
-- use external S3 / OSS via `SKILLHUB_STORAGE_S3_*`
+- keep PostgreSQL bound to `127.0.0.1` when exposing it locally
 - change `BOOTSTRAP_ADMIN_PASSWORD` to a strong password (`validate-release-config.sh` rejects the default `ChangeMe!2026`)
 - rotate or disable the bootstrap admin after initial setup
 - run `make validate-release-config` before `docker compose up -d`
@@ -262,62 +229,13 @@ If the GHCR package remains private, run `docker login ghcr.io` before
 
 ### Upload Allowlist Override
 
-Skill package upload validation uses the default extension allowlist from
-[`SkillPackagePolicy.java`](./server/skillhub-domain/src/main/java/com/iflytek/skillhub/domain/skill/validation/SkillPackagePolicy.java).
-`SkillPublishProperties` uses that same list by default for
-`skillhub.publish.allowed-file-extensions`.
-
-If you need to replace the default allowlist at runtime, set:
+If you need to replace the default upload allowlist at runtime, set:
 
 ```bash
 SKILLHUB_PUBLISH_ALLOWED_FILE_EXTENSIONS=.md,.json,.xsd,.xsl,.dtd,.docx,.xlsx,.pptx
 ```
 
-Spring Boot binds this environment variable to
-`skillhub.publish.allowed-file-extensions`. When set, it replaces the default
-allowlist instead of appending to it.
-
-### Monitoring
-
-A Prometheus + Grafana monitoring stack lives under [`monitoring/`](./monitoring).
-It scrapes the backend's Actuator Prometheus endpoint.
-
-Start it with:
-
-```bash
-cd monitoring
-docker compose -f docker-compose.monitoring.yml up -d
-```
-
-Then open:
-
-- Prometheus: `http://localhost:9090`
-- Grafana: `http://localhost:3001` (`admin` / `admin`)
-
-By default Prometheus scrapes `http://host.docker.internal:8080/actuator/prometheus`,
-so start the backend locally on port `8080` first.
-
-## Kubernetes
-
-Basic Kubernetes manifests are available under [`deploy/k8s/`](./deploy/k8s):
-
-- `configmap.yaml`
-- `secret.yaml.example`
-- `backend-deployment.yaml`
-- `frontend-deployment.yaml`
-- `services.yaml`
-- `ingress.yaml`
-
-Apply them after creating your own secret:
-
-```bash
-kubectl apply -f deploy/k8s/configmap.yaml
-kubectl apply -f deploy/k8s/secret.yaml
-kubectl apply -f deploy/k8s/backend-deployment.yaml
-kubectl apply -f deploy/k8s/frontend-deployment.yaml
-kubectl apply -f deploy/k8s/services.yaml
-kubectl apply -f deploy/k8s/ingress.yaml
-```
+When set, it replaces the default allowlist instead of appending to it.
 
 ## Smoke Test
 
@@ -344,30 +262,30 @@ Run it against a local backend:
                     └──────┬──────┘
                            │
                     ┌──────▼──────┐
-                    │ Spring Boot │  Auth · RBAC · Core Services
-                    │   (Java 21) │  OAuth2 · API Tokens · Audit
+                    │  Go Server  │  Auth · RBAC · Core Services
+                    │  (chi/pgx)  │  JWT · Review · Search
                     └──────┬──────┘
                            │
               ┌────────────┼────────────┐
               │            │            │
        ┌──────▼───┐  ┌─────▼────┐  ┌────▼────┐
-       │PostgreSQL│  │  Redis   │  │ Storage │
-       │    16    │  │    7     │  │ S3/MinIO│
+       │PostgreSQL│  │  Search  │  │ Storage │
+       │    16    │  │  tables  │  │  Local  │
        └──────────┘  └──────────┘  └─────────┘
 ```
 
-**Backend (Spring Boot 3.2.3, Java 21):**
-- Multi-module Maven project with clean architecture
-- Modules: app, domain, auth, search, storage, infra
-- PostgreSQL 16 with Flyway migrations
-- Redis for session management
-- S3/MinIO for skill package storage
+**Backend (Go 1.24):**
+- Modular monolith under `backend/`
+- chi router + pgx PostgreSQL driver
+- In-repo SQL migration runner
+- JWT auth with bootstrap admin support
+- Local filesystem package storage
 
 **Frontend (React 19, TypeScript, Vite):**
 - TanStack Router for routing
 - TanStack Query for data fetching
 - Tailwind CSS + Radix UI for styling
-- OpenAPI TypeScript for type-safe API client
+- Handwritten API types and `fetch`-based client
 - i18next for internationalization
 
 ## Usage with Agent Platforms

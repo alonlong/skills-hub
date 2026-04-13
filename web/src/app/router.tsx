@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ComponentType } from 'react'
-import { createRouter, createRoute, createRootRoute, redirect } from '@tanstack/react-router'
+import { createRouter, createRoute, createRootRoute } from '@tanstack/react-router'
 import { Layout } from './layout'
 import { getCurrentUser } from '@/api/client'
 import { RoleGuard } from '@/shared/components/role-guard'
@@ -106,10 +106,7 @@ const PromotionsPage = createRoleProtectedRouteComponent(
   'PromotionsPage',
   ['SKILL_ADMIN', 'SUPER_ADMIN'],
 )
-const MyStarsPage = createLazyRouteComponent(() => import('@/pages/dashboard/stars'), 'MyStarsPage')
-const NotificationsPage = createLazyRouteComponent(() => import('@/pages/notifications'), 'NotificationsPage')
 const TokensPage = createLazyRouteComponent(() => import('@/pages/dashboard/tokens'), 'TokensPage')
-const CliAuthPage = createLazyRouteComponent(() => import('@/pages/cli-auth'), 'CliAuthPage')
 const SecuritySettingsPage = createLazyRouteComponent(
   () => import('@/pages/settings/security'),
   'SecuritySettingsPage',
@@ -117,10 +114,6 @@ const SecuritySettingsPage = createLazyRouteComponent(
 const ProfileSettingsPage = createLazyRouteComponent(
   () => import('@/pages/settings/profile'),
   'ProfileSettingsPage',
-)
-const NotificationSettingsPage = createLazyRouteComponent(
-  () => import('@/pages/settings/notification-settings'),
-  'NotificationSettingsPage',
 )
 const AdminUsersPage = createRoleProtectedRouteComponent(
   () => import('@/pages/admin/users'),
@@ -194,13 +187,12 @@ const searchRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'search',
   component: SearchPage,
-  validateSearch: (search: Record<string, unknown>): { q: string; label?: string; sort: string; page: number; starredOnly: boolean } => {
+  validateSearch: (search: Record<string, unknown>): { q: string; label?: string; sort: string; page: number } => {
     return {
       q: normalizeSearchQuery(typeof search.q === 'string' ? search.q : ''),
       label: typeof search.label === 'string' && search.label ? search.label : undefined,
       sort: (search.sort as string) || 'newest',
       page: Number(search.page) || 0,
-      starredOnly: search.starredOnly === true || search.starredOnly === 'true',
     }
   },
 })
@@ -305,40 +297,11 @@ const dashboardPromotionsRoute = createRoute({
   component: PromotionsPage,
 })
 
-const dashboardStarsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: 'dashboard/stars',
-  beforeLoad: requireAuth,
-  component: MyStarsPage,
-})
-
-const dashboardNotificationsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: 'dashboard/notifications',
-  beforeLoad: requireAuth,
-  component: NotificationsPage,
-})
-
 const dashboardTokensRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'dashboard/tokens',
   beforeLoad: requireAuth,
   component: TokensPage,
-})
-
-const cliAuthRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: 'cli/auth',
-  component: CliAuthPage,
-  validateSearch: (search: Record<string, unknown>): Record<string, string> => {
-    // Preserve all CLI auth parameters - use empty string instead of undefined to prevent TanStack Router from removing them
-    return {
-      redirect_uri: typeof search.redirect_uri === 'string' ? search.redirect_uri : '',
-      label_b64: typeof search.label_b64 === 'string' ? search.label_b64 : '',
-      label: typeof search.label === 'string' ? search.label : '',
-      state: typeof search.state === 'string' ? search.state : '',
-    }
-  },
 })
 
 const settingsSecurityRoute = createRoute({
@@ -353,22 +316,6 @@ const settingsProfileRoute = createRoute({
   path: 'settings/profile',
   beforeLoad: requireAuth,
   component: ProfileSettingsPage,
-})
-
-const settingsNotificationsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: 'settings/notifications',
-  beforeLoad: requireAuth,
-  component: NotificationSettingsPage,
-})
-
-const settingsAccountsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: 'settings/accounts',
-  beforeLoad: async (ctx) => {
-    await requireAuth(ctx)
-    throw redirect({ to: '/settings/security' })
-  },
 })
 
 const adminUsersRoute = createRoute({
@@ -413,14 +360,9 @@ const routeTree = rootRoute.addChildren([
   dashboardReportsRoute,
   dashboardReviewDetailRoute,
   dashboardPromotionsRoute,
-  dashboardStarsRoute,
-  dashboardNotificationsRoute,
   dashboardTokensRoute,
-  cliAuthRoute,
   settingsSecurityRoute,
   settingsProfileRoute,
-  settingsNotificationsRoute,
-  settingsAccountsRoute,
   adminUsersRoute,
   adminAuditLogRoute,
   adminLabelsRoute,

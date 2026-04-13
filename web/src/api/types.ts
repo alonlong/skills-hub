@@ -1,7 +1,6 @@
-import type { components } from './generated/schema'
-
-export type User = Omit<components['schemas']['AuthMeResponse'], 'userId' | 'displayName' | 'platformRoles'> & {
+export interface User {
   userId: string
+  username: string
   displayName: string
   email?: string
   avatarUrl?: string
@@ -9,10 +8,12 @@ export type User = Omit<components['schemas']['AuthMeResponse'], 'userId' | 'dis
   platformRoles: string[]
 }
 
-export type OAuthProvider = Omit<components['schemas']['AuthProviderResponse'], 'id' | 'name' | 'authorizationUrl'> & {
+export interface OAuthProvider {
   id: string
   name: string
   authorizationUrl: string
+  iconUrl?: string
+  provider?: string
 }
 
 export interface AuthMethod {
@@ -23,7 +24,7 @@ export interface AuthMethod {
   actionUrl: string
 }
 
-export type ApiToken = Omit<components['schemas']['TokenSummaryResponse'], 'id' | 'name' | 'tokenPrefix' | 'createdAt'> & {
+export interface ApiToken {
   id: number
   name: string
   tokenPrefix: string
@@ -32,24 +33,31 @@ export type ApiToken = Omit<components['schemas']['TokenSummaryResponse'], 'id' 
   lastUsedAt?: string
 }
 
-export type CreateTokenRequest = Omit<components['schemas']['TokenCreateRequest'], 'name'> & {
+export interface CreateTokenRequest {
   name: string
   scopes?: string[]
   expiresAt?: string
 }
 
-export type CreateTokenResponse = Omit<components['schemas']['TokenCreateResponse'], 'token' | 'id' | 'name' | 'tokenPrefix' | 'createdAt'> & {
+export interface CreateTokenResponse {
   token: string
   id: number
   name: string
   tokenPrefix: string
   createdAt: string
+  lastUsedAt?: string
   expiresAt?: string
 }
 
 export interface LocalLoginRequest {
   username: string
   password: string
+}
+
+export interface AuthLoginResponse {
+  accessToken: string
+  tokenType: string
+  user: User
 }
 
 export interface LocalRegisterRequest extends LocalLoginRequest {
@@ -61,7 +69,7 @@ export interface ChangePasswordRequest {
   newPassword: string
 }
 
-export type CreateNamespaceRequest = Omit<components['schemas']['NamespaceRequest'], 'slug' | 'displayName'> & {
+export interface CreateNamespaceRequest {
   slug: string
   displayName: string
   description?: string
@@ -147,26 +155,26 @@ export interface SkillSummary {
   resolutionMode?: string
 }
 
-export type LabelItem = Omit<components['schemas']['SkillLabelDto'], 'slug' | 'type' | 'displayName'> & {
+export interface LabelItem {
   slug: string
   type: 'RECOMMENDED' | 'PRIVILEGED' | string
   displayName: string
+  visibleInFilter?: boolean
+  sortOrder?: number
 }
 
-export type LabelTranslation = Omit<components['schemas']['LabelTranslationResponse'], 'locale' | 'displayName'> & {
+export interface LabelTranslation {
   locale: string
   displayName: string
 }
 
-export type LabelDefinition = Omit<
-  components['schemas']['LabelDefinitionResponse'],
-  'slug' | 'type' | 'translations' | 'sortOrder' | 'visibleInFilter'
-> & {
+export interface LabelDefinition {
   slug: string
   type: 'RECOMMENDED' | 'PRIVILEGED' | string
   visibleInFilter: boolean
   sortOrder: number
   translations: LabelTranslation[]
+  createdAt?: string
 }
 
 export interface AdminLabelInput {
@@ -262,7 +270,6 @@ export interface SearchParams {
   sort?: string
   page?: number
   size?: number
-  starredOnly?: boolean
 }
 
 export interface PagedResponse<T> {

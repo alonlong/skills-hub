@@ -55,7 +55,6 @@ export function useSearchSkills(params: SearchParams) {
   return useQuery({
     queryKey: ['skills', 'search', params],
     queryFn: () => searchSkills(params),
-    enabled: params.starredOnly !== true,
   })
 }
 

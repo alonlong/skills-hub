@@ -1,18 +1,4 @@
 services:
-  skill-scanner:
-    build: ./scanner
-    ports:
-      - "8000:8000"
-    environment:
-      SKILL_SCANNER_LLM_API_KEY: ${SKILL_SCANNER_LLM_API_KEY:-}
-      SKILL_SCANNER_LLM_BASE_URL: ${SKILL_SCANNER_LLM_BASE_URL:-}
-      SKILL_SCANNER_LLM_MODEL: ${SKILL_SCANNER_LLM_MODEL:-}
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   postgres:
     image: ${POSTGRES_IMAGE:-postgres:16-alpine}
     ports:
@@ -29,33 +15,24 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: ${REDIS_IMAGE:-redis:7-alpine}
+  backend:
+    build: ./backend
     ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  minio:
-    image: ${MINIO_IMAGE:-minio/minio:latest}
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "8080:8080"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
+      BACKEND_HTTP_PORT: "8080"
+      DATABASE_URL: "postgres://skillhub:skillhub_dev@postgres:5432/skillhub?sslmode=disable"
+      BACKEND_JWT_SECRET: "dev-secret"
+      STORAGE_BASE_PATH: "/var/lib/skillhub/packages"
+      BOOTSTRAP_ADMIN_ENABLED: "true"
+      BOOTSTRAP_ADMIN_USERNAME: "admin"
+      BOOTSTRAP_ADMIN_PASSWORD: "ChangeMe!2026"
     volumes:
-      - minio_data:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - skill_packages:/var/lib/skillhub/packages
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:
-  minio_data:
+  skill_packages:

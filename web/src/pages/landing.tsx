@@ -44,7 +44,7 @@ export function LandingPage() {
     const normalized = normalizeSearchQuery(query)
     navigate({
       to: '/search',
-      search: { q: normalized, sort: 'relevance', page: 0, starredOnly: false },
+      search: { q: normalized, sort: 'relevance', page: 0 },
     })
   }
 
@@ -132,7 +132,7 @@ export function LandingPage() {
         <div className="flex flex-wrap justify-center gap-4 mb-14">
           <Link
             to="/search"
-            search={{ q: '', sort: 'relevance', page: 0, starredOnly: false }}
+            search={{ q: '', sort: 'relevance', page: 0 }}
             className="px-8 py-3.5 rounded-xl text-base font-medium text-white bg-brand-gradient shadow-sm hover:opacity-95 transition-opacity"
           >
             {t('landing.hero.exploreSkills')}
@@ -216,7 +216,7 @@ export function LandingPage() {
             </div>
             <Button
               variant="ghost"
-              onClick={() => navigate({ to: '/search', search: { q: '', sort: 'downloads', page: 0, starredOnly: false } })}
+              onClick={() => navigate({ to: '/search', search: { q: '', sort: 'downloads', page: 0 } })}
             >
               {t('home.viewAll')}
             </Button>
@@ -250,7 +250,7 @@ export function LandingPage() {
             </div>
             <Button
               variant="ghost"
-              onClick={() => navigate({ to: '/search', search: { q: '', sort: 'newest', page: 0, starredOnly: false } })}
+              onClick={() => navigate({ to: '/search', search: { q: '', sort: 'newest', page: 0 } })}
             >
               {t('home.viewAll')}
             </Button>

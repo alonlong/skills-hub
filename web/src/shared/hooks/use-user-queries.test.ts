@@ -11,8 +11,6 @@ describe('use-user-queries exports', () => {
   it('exports all expected hook functions', async () => {
     const mod = await import('./use-user-queries')
     expect(typeof mod.useMySkills).toBe('function')
-    expect(typeof mod.useMyStars).toBe('function')
-    expect(typeof mod.useMyStarsPage).toBe('function')
     expect(typeof mod.useSubmitPromotion).toBe('function')
   })
 })

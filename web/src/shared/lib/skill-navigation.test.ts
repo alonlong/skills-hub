@@ -7,7 +7,6 @@ describe('getSkillSquareSearch', () => {
       q: '',
       sort: 'relevance',
       page: 0,
-      starredOnly: false,
     })
   })
 })

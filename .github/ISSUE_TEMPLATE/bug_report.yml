@@ -33,7 +33,7 @@ body:
     id: api-impact
     attributes:
       label: API Contract Impact
-      description: If relevant, include the request path, response shape, and whether `web/src/api/generated/schema.d.ts` appears stale.
+      description: If relevant, include the request path and response shape involved in the bug.
   - type: textarea
     id: logs
     attributes:

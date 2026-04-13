@@ -91,14 +91,6 @@ vi.mock('@/shared/hooks/use-label-queries', () => ({
   }),
 }))
 
-vi.mock('@/shared/hooks/use-user-queries', () => ({
-  useMyStars: () => ({
-    data: [],
-    isLoading: false,
-    isFetching: false,
-  }),
-}))
-
 import { SearchPage } from './search'
 
 function findButton(label: string) {
@@ -119,7 +111,6 @@ describe('SearchPage', () => {
       label: 'code-generation',
       sort: 'downloads',
       page: 1,
-      starredOnly: false,
     })
     useSearchSkillsMock.mockReturnValue({
       data: {
@@ -153,7 +144,6 @@ describe('SearchPage', () => {
         label: '',
         sort: 'downloads',
         page: 0,
-        starredOnly: false,
       },
     })
   })
@@ -170,35 +160,22 @@ describe('SearchPage', () => {
         label: 'code-generation',
         sort: 'newest',
         page: 0,
-        starredOnly: false,
       },
     })
   })
 
-  it('preserves the active label when paging and when toggling starred-only', () => {
+  it('preserves the active label when paging', () => {
     renderToStaticMarkup(<SearchPage />)
 
     paginationProps[0]?.onPageChange(2)
-    findButton('search.filterStarred').onClick?.()
 
-    expect(navigateMock).toHaveBeenNthCalledWith(1, {
+    expect(navigateMock).toHaveBeenCalledWith({
       to: '/search',
       search: {
         q: 'agent',
         label: 'code-generation',
         sort: 'downloads',
         page: 2,
-        starredOnly: false,
-      },
-    })
-    expect(navigateMock).toHaveBeenNthCalledWith(2, {
-      to: '/search',
-      search: {
-        q: 'agent',
-        label: 'code-generation',
-        sort: 'downloads',
-        page: 0,
-        starredOnly: true,
       },
     })
   })

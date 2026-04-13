@@ -2,8 +2,6 @@ import { startTransition, useEffect, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { Loader2 } from 'lucide-react'
-import type { SkillSummary } from '@/api/types'
-import { useAuth } from '@/features/auth/use-auth'
 import { SearchBar } from '@/features/search/search-bar'
 import { SkillCard } from '@/features/skill/skill-card'
 import { SkeletonList } from '@/shared/components/skeleton-loader'
@@ -11,7 +9,6 @@ import { EmptyState } from '@/shared/components/empty-state'
 import { Pagination } from '@/shared/components/pagination'
 import { useSearchSkills } from '@/shared/hooks/use-skill-queries'
 import { useVisibleLabels } from '@/shared/hooks/use-label-queries'
-import { useMyStars } from '@/shared/hooks/use-user-queries'
 import { normalizeSearchQuery } from '@/shared/lib/search-query'
 import { Button } from '@/shared/ui/button'
 import { APP_SHELL_PAGE_CLASS_NAME } from '@/app/page-shell-style'
@@ -21,44 +18,18 @@ const PAGE_SIZE = 12
 /**
  * Skill discovery page with synchronized URL state.
  *
- * Search text, sorting, pagination, and the starred-only filter are mirrored into router search
+ * Search text, sorting, pagination, and label filters are mirrored into router search
  * params so the page can be shared, restored, and revisited without losing state.
  */
-function filterStarredSkills(skills: SkillSummary[], query: string): SkillSummary[] {
-  const normalizedQuery = query.trim().toLowerCase()
-  if (!normalizedQuery) {
-    return skills
-  }
-
-  return skills.filter((skill) =>
-    [skill.displayName, skill.summary, skill.namespace, skill.slug]
-      .filter(Boolean)
-      .some((value) => value!.toLowerCase().includes(normalizedQuery))
-  )
-}
-
-function sortStarredSkills(skills: SkillSummary[], sort: string): SkillSummary[] {
-  const sorted = [...skills]
-  if (sort === 'downloads') {
-    return sorted.sort((left, right) => right.downloadCount - left.downloadCount)
-  }
-  if (sort === 'newest' || sort === 'relevance') {
-    return sorted.sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
-  }
-  return sorted
-}
-
 export function SearchPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const searchParams = useSearch({ from: '/search' })
-  const { isAuthenticated } = useAuth()
 
   const q = normalizeSearchQuery(searchParams.q || '')
   const selectedLabel = searchParams.label || ''
   const sort = searchParams.sort || 'newest'
   const page = searchParams.page ?? 0
-  const starredOnly = searchParams.starredOnly ?? false
   const [queryInput, setQueryInput] = useState(q)
 
   useEffect(() => {
@@ -71,14 +42,8 @@ export function SearchPage() {
     sort,
     page,
     size: PAGE_SIZE,
-    starredOnly,
   })
   const { data: labels } = useVisibleLabels()
-  const {
-    data: starredSkills,
-    isLoading: isLoadingStarred,
-    isFetching: isFetchingStarred,
-  } = useMyStars(starredOnly && isAuthenticated)
 
   useEffect(() => {
     // Debounce URL updates while the user is typing so query state stays shareable without
@@ -90,74 +55,50 @@ export function SearchPage() {
 
     if (!normalizedQuery) {
       startTransition(() => {
-        navigate({ to: '/search', search: { q: '', label: selectedLabel, sort, page: 0, starredOnly }, replace: page === 0 })
+        navigate({ to: '/search', search: { q: '', label: selectedLabel, sort, page: 0 }, replace: page === 0 })
       })
       return
     }
 
     const timeoutId = window.setTimeout(() => {
       startTransition(() => {
-        navigate({ to: '/search', search: { q: normalizedQuery, label: selectedLabel, sort, page: 0, starredOnly }, replace: true })
+        navigate({ to: '/search', search: { q: normalizedQuery, label: selectedLabel, sort, page: 0 }, replace: true })
       })
     }, 250)
 
     return () => window.clearTimeout(timeoutId)
-  }, [navigate, page, q, queryInput, selectedLabel, sort, starredOnly])
+  }, [navigate, page, q, queryInput, selectedLabel, sort])
 
   const handleSearch = (query: string) => {
     const normalizedQuery = normalizeSearchQuery(query)
     setQueryInput(query)
     startTransition(() => {
-      navigate({ to: '/search', search: { q: normalizedQuery, label: selectedLabel, sort, page: 0, starredOnly }, replace: true })
+      navigate({ to: '/search', search: { q: normalizedQuery, label: selectedLabel, sort, page: 0 }, replace: true })
     })
   }
 
   const handleSortChange = (newSort: string) => {
-    navigate({ to: '/search', search: { q, label: selectedLabel, sort: newSort, page: 0, starredOnly } })
+    navigate({ to: '/search', search: { q, label: selectedLabel, sort: newSort, page: 0 } })
   }
 
   const handlePageChange = (newPage: number) => {
-    navigate({ to: '/search', search: { q, label: selectedLabel, sort, page: newPage, starredOnly } })
+    navigate({ to: '/search', search: { q, label: selectedLabel, sort, page: newPage } })
   }
 
   const handleLabelToggle = (label: string) => {
     const nextLabel = selectedLabel === label ? '' : label
-    navigate({ to: '/search', search: { q, label: nextLabel, sort, page: 0, starredOnly } })
-  }
-
-  const handleStarredToggle = () => {
-    if (!isAuthenticated) {
-      navigate({
-        to: '/login',
-        search: {
-          returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}`,
-        },
-      })
-      return
-    }
-
-    navigate({ to: '/search', search: { q, label: selectedLabel, sort, page: 0, starredOnly: !starredOnly } })
+    navigate({ to: '/search', search: { q, label: nextLabel, sort, page: 0 } })
   }
 
   const handleSkillClick = (namespace: string, slug: string) => {
     navigate({ to: `/space/${namespace}/${encodeURIComponent(slug)}` })
   }
 
-  const filteredStarredSkills = starredOnly
-    ? sortStarredSkills(filterStarredSkills(starredSkills ?? [], q), sort)
-    : []
-  const starredPageItems = starredOnly
-    ? filteredStarredSkills.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
-    : []
-  const totalPages = starredOnly
-    ? Math.ceil(filteredStarredSkills.length / PAGE_SIZE)
-    : data
-      ? Math.ceil(data.total / data.size)
-      : 0
-  const displayItems = starredOnly ? starredPageItems : (data?.items ?? [])
-  const isPageLoading = starredOnly ? isLoadingStarred : isLoading
-  const isUpdatingResults = starredOnly ? isFetchingStarred && !isLoadingStarred : isFetching && !isLoading
-  const resultCount = starredOnly ? filteredStarredSkills.length : (data?.total ?? 0)
+  const totalPages = data ? Math.ceil(data.total / data.size) : 0
+  const displayItems = data?.items ?? []
+  const isPageLoading = isLoading
+  const isUpdatingResults = isFetching && !isLoading
+  const resultCount = data?.total ?? 0
 
   return (
     <div className={APP_SHELL_PAGE_CLASS_NAME}>
@@ -217,14 +158,7 @@ export function SearchPage() {
 
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium text-muted-foreground">{t('search.filters.label')}</span>
-          <Button
-            variant={starredOnly ? 'default' : 'outline'}
-            size="sm"
-            onClick={handleStarredToggle}
-          >
-            {t('search.filterStarred')}
-          </Button>
-          {!starredOnly && labels?.map((label) => (
+          {labels?.map((label) => (
             <Button
               key={label.slug}
               variant={selectedLabel === label.slug ? 'default' : 'outline'}
@@ -263,12 +197,8 @@ export function SearchPage() {
         </>
       ) : (
         <EmptyState
-          title={starredOnly ? t('search.noStarredResults') : t('search.noResults')}
-          description={
-            starredOnly
-              ? (q ? t('search.noStarredResultsFor', { q }) : t('search.noStarredSkills'))
-              : (q ? t('search.noResultsFor', { q }) : t('search.enterKeyword'))
-          }
+          title={t('search.noResults')}
+          description={q ? t('search.noResultsFor', { q }) : t('search.enterKeyword')}
         />
       )}
     </div>

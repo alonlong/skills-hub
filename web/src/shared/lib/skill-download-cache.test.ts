@@ -72,22 +72,20 @@ describe('incrementSkillDownloadCount', () => {
 
     queryClient.setQueryData(['skills', '@team', 'demo-skill'], createSkillDetail({ namespace: 'team' }))
     queryClient.setQueryData(['skills', 'my'], searchPage.items)
-    queryClient.setQueryData(['skills', 'stars'], searchPage.items)
-    queryClient.setQueryData(['skills', 'search', { q: '', sort: 'downloads', page: 0, size: 12, starredOnly: false }], searchPage)
+    queryClient.setQueryData(['skills', 'search', { q: '', sort: 'downloads', page: 0, size: 12 }], searchPage)
 
     incrementSkillDownloadCount(queryClient, { namespace: '@team', slug: 'demo-skill' })
 
     expect(queryClient.getQueryData<SkillDetail>(['skills', '@team', 'demo-skill'])?.downloadCount).toBe(11)
     expect(queryClient.getQueryData<SkillSummary[]>(['skills', 'my'])?.[0]?.downloadCount).toBe(11)
-    expect(queryClient.getQueryData<SkillSummary[]>(['skills', 'stars'])?.[0]?.downloadCount).toBe(11)
     expect(
       queryClient.getQueryData<PagedResponse<SkillSummary>>(
-        ['skills', 'search', { q: '', sort: 'downloads', page: 0, size: 12, starredOnly: false }],
+        ['skills', 'search', { q: '', sort: 'downloads', page: 0, size: 12 }],
       )?.items[0]?.downloadCount,
     ).toBe(11)
     expect(
       queryClient.getQueryData<PagedResponse<SkillSummary>>(
-        ['skills', 'search', { q: '', sort: 'downloads', page: 0, size: 12, starredOnly: false }],
+        ['skills', 'search', { q: '', sort: 'downloads', page: 0, size: 12 }],
       )?.items[1]?.downloadCount,
     ).toBe(4)
   })

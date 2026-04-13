@@ -11,7 +11,8 @@ export function useLocalLogin() {
 
   return useMutation({
     mutationFn: (request: LocalLoginRequest) => authApi.localLogin(request),
-    onSuccess: (user) => {
+    onSuccess: ({ accessToken, user }) => {
+      window.localStorage.setItem('skillhub.accessToken', accessToken)
       clearSessionScopedQueries(queryClient)
       queryClient.setQueryData<User | null>(['auth', 'me'], user)
     },
