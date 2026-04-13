@@ -3,6 +3,7 @@ package handlers
 import (
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 
@@ -90,4 +91,27 @@ func (h *SkillHandler) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, results)
+}
+
+// WebListSkills serves GET /api/web/skills for the web app catalog (landing page, search).
+// Returns the paged shape expected by the frontend. Currently returns an empty page until
+// catalog listing is implemented against the database.
+func (h *SkillHandler) WebListSkills(w http.ResponseWriter, r *http.Request) {
+	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+	if page < 0 {
+		page = 0
+	}
+	size, _ := strconv.Atoi(r.URL.Query().Get("size"))
+	if size < 1 {
+		size = 20
+	}
+	if size > 100 {
+		size = 100
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"items": []any{},
+		"total": 0,
+		"page":  page,
+		"size":  size,
+	})
 }

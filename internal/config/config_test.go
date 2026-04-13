@@ -7,8 +7,8 @@ func TestLoad_DefaultHTTPPort(t *testing.T) {
 
 	cfg := Load()
 
-	if cfg.HTTPPort != "8080" {
-		t.Fatalf("HTTPPort: got %q want %q", cfg.HTTPPort, "8080")
+	if cfg.HTTPPort != "3001" {
+		t.Fatalf("HTTPPort: got %q want %q", cfg.HTTPPort, "3001")
 	}
 }
 

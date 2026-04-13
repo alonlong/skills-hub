@@ -79,12 +79,12 @@ describe('install-command', () => {
   })
 
   it('falls back to browser origin when app base url contains localhost', () => {
-    setMockWindow('http://localhost:8080')
+    setMockWindow('http://localhost:3002')
     expect(getBaseUrl()).toBe('https://fallback.example.com')
   })
 
   it('renders the install command in a more compact code block', () => {
-    setMockWindow('http://localhost:3000')
+    setMockWindow('http://localhost:3002')
 
     const html = renderToStaticMarkup(createElement(InstallCommand, { namespace: 'global', slug: 'meeting-minutes-generator' }))
 

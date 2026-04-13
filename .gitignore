@@ -9,8 +9,7 @@ node_modules/
 *.tsbuildinfo
 package-lock.json
 
-# Playwright
-**/.playwright/
-**/playwright-report/
-**/test-results/
-
+data/
+java-version/
+bin/
+.dev/

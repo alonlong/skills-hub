@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 
 	"skillhub/backend/internal/admin"
 	"skillhub/backend/internal/auth"
@@ -28,6 +29,7 @@ func NewRouter(cfg config.Config, deps Dependencies) http.Handler {
 	_ = cfg
 
 	r := chi.NewRouter()
+	r.Use(middleware.Logger)
 	r.Get("/healthz", handlers.Health)
 
 	if deps.AuthService != nil {
@@ -45,11 +47,14 @@ func NewRouter(cfg config.Config, deps Dependencies) http.Handler {
 		r.Get("/api/v1/namespaces/{slug}", namespaceHandler.GetNamespace)
 	}
 
-	if deps.AuthService != nil && deps.SkillService != nil {
+	if deps.SkillService != nil {
 		skillHandler := handlers.NewSkillHandler(deps.SkillService, deps.SearchService)
-		r.Get("/api/v1/skills/{namespace}/{skill}", skillHandler.GetSkill)
-		r.Get("/api/v1/skills/{namespace}/{skill}/versions/{version}/download", skillHandler.DownloadVersion)
-		r.With(appmiddleware.RequireAuth(deps.AuthService)).Post("/api/v1/skills/{namespace}/{skill}/versions", skillHandler.PublishVersion)
+		r.Get("/api/web/skills", skillHandler.WebListSkills)
+		if deps.AuthService != nil {
+			r.Get("/api/v1/skills/{namespace}/{skill}", skillHandler.GetSkill)
+			r.Get("/api/v1/skills/{namespace}/{skill}/versions/{version}/download", skillHandler.DownloadVersion)
+			r.With(appmiddleware.RequireAuth(deps.AuthService)).Post("/api/v1/skills/{namespace}/{skill}/versions", skillHandler.PublishVersion)
+		}
 	}
 
 	if deps.SearchService != nil {

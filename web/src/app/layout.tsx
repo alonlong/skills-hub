@@ -11,7 +11,7 @@ import { getAppMainContentLayout, resolveAppMainContentPathname } from './layout
 /**
  * Application shell shared by all routed pages.
  *
- * It owns the global header, footer, language switcher, auth-aware navigation, and suspense
+ * It owns the global header, language switcher, auth-aware navigation, and suspense
  * fallback used while lazy route modules are loading.
  */
 export function Layout() {
@@ -130,91 +130,6 @@ export function Layout() {
           </div>
         </Suspense>
       </main>
-
-      {/* Footer */}
-      <footer className="relative z-10 border-t rounded-t-2xl mt-auto" style={{ background: '#F1F5F9', borderColor: 'hsl(var(--border))' }}>
-        <div className="max-w-6xl mx-auto px-6 md:px-12 py-10">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10 md:gap-12">
-            <div className="flex-shrink-0">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm bg-brand-gradient">
-                  S
-                </div>
-                <span className="text-lg font-bold text-brand-gradient">SkillHub</span>
-              </div>
-              <p className="text-sm max-w-xs" style={{ color: 'hsl(var(--text-secondary))' }}>
-                {t('layout.footerDescription')}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-12 md:gap-16">
-              <div>
-                <h4 className="text-sm font-semibold mb-3" style={{ color: 'hsl(var(--foreground))' }}>
-                  {t('nav.home')}
-                </h4>
-                <ul className="space-y-2 text-sm">
-                  <li>
-                    <Link to="/" className="hover:opacity-80 transition-opacity" style={{ color: 'hsl(var(--text-secondary))' }}>
-                      {t('nav.home')}
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/search"
-                      search={{ q: '', sort: 'relevance', page: 0 }}
-                      className="hover:opacity-80 transition-opacity"
-                      style={{ color: 'hsl(var(--text-secondary))' }}
-                    >
-                      {t('nav.search')}
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/dashboard" className="hover:opacity-80 transition-opacity" style={{ color: 'hsl(var(--text-secondary))' }}>
-                      {t('nav.dashboard')}
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold mb-3" style={{ color: 'hsl(var(--foreground))' }}>
-                  {t('footer.resources')}
-                </h4>
-                <ul className="space-y-2 text-sm">
-                  <li>
-                    <a href="#" className="hover:opacity-80 transition-opacity" style={{ color: 'hsl(var(--text-secondary))' }}>
-                      {t('footer.docs')}
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" className="hover:opacity-80 transition-opacity" style={{ color: 'hsl(var(--text-secondary))' }}>
-                      {t('footer.api')}
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" className="hover:opacity-80 transition-opacity" style={{ color: 'hsl(var(--text-secondary))' }}>
-                      {t('footer.community')}
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          <div
-            className="mt-10 pt-6 border-t flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs"
-            style={{ borderColor: 'hsl(var(--border))', color: 'hsl(var(--muted-foreground))' }}
-          >
-            <span>{t('footer.copyright')}</span>
-            <div className="flex items-center gap-2">
-              <Link to="/privacy" className="hover:opacity-80 transition-opacity">
-                {t('footer.privacy')}
-              </Link>
-              <span>|</span>
-              <Link to="/terms" className="hover:opacity-80 transition-opacity">
-                {t('footer.terms')}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

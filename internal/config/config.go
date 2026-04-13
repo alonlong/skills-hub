@@ -17,11 +17,11 @@ type Config struct {
 }
 
 // Load reads configuration from the environment.
-// BACKEND_HTTP_PORT defaults to 8080 when unset or empty.
+// BACKEND_HTTP_PORT defaults to 3001 when unset or empty.
 func Load() Config {
 	port := os.Getenv("BACKEND_HTTP_PORT")
 	if port == "" {
-		port = "8080"
+		port = "3001"
 	}
 
 	databaseURL := os.Getenv("DATABASE_URL")
