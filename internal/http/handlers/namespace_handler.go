@@ -72,3 +72,18 @@ func (h *NamespaceHandler) GetNamespace(w http.ResponseWriter, r *http.Request) 
 	}
 	writeJSON(w, http.StatusOK, namespaceData)
 }
+
+func (h *NamespaceHandler) ListMine(w http.ResponseWriter, r *http.Request) {
+	actor, ok := middleware.ActorFromContext(r.Context())
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		return
+	}
+
+	items, err := h.service.ListMine(r.Context(), actor)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, items)
+}

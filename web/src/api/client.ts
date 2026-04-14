@@ -61,7 +61,7 @@ type RuntimeConfig = {
   authSessionBootstrapAuto?: string
 }
 
-const ACCESS_TOKEN_STORAGE_KEY = 'skillhub.accessToken'
+export const ACCESS_TOKEN_STORAGE_KEY = 'skillhub.accessToken'
 
 declare global {
   interface Window {
@@ -97,6 +97,12 @@ function withRequestHeaders(headers?: HeadersInit): Headers {
   const language = i18n.resolvedLanguage?.trim()
   if (language) {
     merged.set('Accept-Language', language)
+  }
+  if (typeof window !== 'undefined' && !merged.has('Authorization')) {
+    const token = window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)
+    if (token) {
+      merged.set('Authorization', `Bearer ${token}`)
+    }
   }
   return merged
 }

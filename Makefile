@@ -4,8 +4,8 @@
 POSTGRES_HOST_PORT ?= 7432
 
 # Vite dev server and Go API must agree on the API port (see web/vite.config.ts).
-BACKEND_HTTP_PORT ?= 3001
-FRONTEND_PORT ?= 3002
+BACKEND_HTTP_PORT ?= 9000
+FRONTEND_PORT ?= 3010
 export BACKEND_HTTP_PORT FRONTEND_PORT
 
 backend:
@@ -13,6 +13,7 @@ backend:
 	mkdir -p .dev; \
 	go build -o bin/skillhub ./cmd/server; \
 	export DATABASE_URL="$${DATABASE_URL:-postgres://postgres:123456@localhost:$(POSTGRES_HOST_PORT)/skillhub?sslmode=disable}"; \
+	export BOOTSTRAP_ADMIN_ENABLED="$${BOOTSTRAP_ADMIN_ENABLED:-true}"; \
 	if [ "$(BG)" = "1" ]; then \
 		nohup ./bin/skillhub >> .dev/backend.log 2>&1 & echo $$! > .dev/backend.pid && echo "Backend http://localhost:$${BACKEND_HTTP_PORT}  log .dev/backend.log  pid $$(cat .dev/backend.pid)"; \
 	else \

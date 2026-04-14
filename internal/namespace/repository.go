@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 )
 
 var errNamespaceNotFound = errors.New("namespace not found")
@@ -15,6 +16,7 @@ type Repository interface {
 	GetBySlug(ctx context.Context, slug string) (Namespace, error)
 	GetMemberRole(ctx context.Context, namespaceID string, userID string) (string, error)
 	LookupUserIDByUsername(ctx context.Context, username string) (string, error)
+	ListNamespacesForUser(ctx context.Context, userID string) ([]NamespaceWithMembership, error)
 }
 
 type SQLRepository struct {
@@ -83,4 +85,40 @@ func (r *SQLRepository) LookupUserIDByUsername(ctx context.Context, username str
 		return "", errUserNotFound
 	}
 	return userID, err
+}
+
+func (r *SQLRepository) ListNamespacesForUser(ctx context.Context, userID string) ([]NamespaceWithMembership, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT n.id, n.slug, n.display_name, n.type, n.description, n.status, n.created_by, n.created_at, m.role
+		FROM namespaces n
+		INNER JOIN namespace_members m ON m.namespace_id = n.id
+		WHERE m.user_id = $1
+		ORDER BY n.created_at DESC
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []NamespaceWithMembership
+	for rows.Next() {
+		var row NamespaceWithMembership
+		var createdAt time.Time
+		if err := rows.Scan(
+			&row.ID,
+			&row.Slug,
+			&row.DisplayName,
+			&row.Type,
+			&row.Description,
+			&row.Status,
+			&row.CreatedBy,
+			&createdAt,
+			&row.Role,
+		); err != nil {
+			return nil, err
+		}
+		row.CreatedAt = createdAt
+		out = append(out, row)
+	}
+	return out, rows.Err()
 }

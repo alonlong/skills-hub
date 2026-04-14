@@ -1,11 +1,22 @@
 import { useEffect, useRef } from 'react'
 import type { QueryClient } from '@tanstack/react-query'
 import { useQueryClient } from '@tanstack/react-query'
-import { WEB_API_PREFIX } from '@/api/client'
+import { ACCESS_TOKEN_STORAGE_KEY, WEB_API_PREFIX } from '@/api/client'
 import { incrementUnreadCount } from './notification-unread-cache'
 import { createNotificationSseConnection } from './notification-sse-coordinator'
 
-const SSE_URL = `${WEB_API_PREFIX}/notifications/sse`
+function buildNotificationSseUrl(): string {
+  const base = `${WEB_API_PREFIX}/notifications/sse`
+  if (typeof window === 'undefined') {
+    return base
+  }
+  const token = window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)
+  if (!token) {
+    return base
+  }
+  const sep = base.includes('?') ? '&' : '?'
+  return `${base}${sep}access_token=${encodeURIComponent(token)}`
+}
 
 type NotificationSseConnectionLike = ReturnType<typeof createNotificationSseConnection>
 
@@ -38,7 +49,7 @@ export function useNotificationSse(userId?: string | null) {
   useEffect(() => {
     if (!userId) return
 
-    const es = createNotificationSseConnection(SSE_URL)
+    const es = createNotificationSseConnection(buildNotificationSseUrl())
     esRef.current = es
     attachNotificationSseListeners(es, queryClient, userId)
 

@@ -45,6 +45,13 @@ func NewRouter(cfg config.Config, deps Dependencies) http.Handler {
 		r.With(appmiddleware.RequireAuth(deps.AuthService)).Post("/api/v1/namespaces", namespaceHandler.CreateNamespace)
 		r.With(appmiddleware.RequireAuth(deps.AuthService)).Post("/api/v1/namespaces/{slug}/members", namespaceHandler.AddMember)
 		r.Get("/api/v1/namespaces/{slug}", namespaceHandler.GetNamespace)
+		r.With(appmiddleware.RequireAuthFlexible(deps.AuthService)).Get("/api/web/me/namespaces", namespaceHandler.ListMine)
+	}
+
+	if deps.AuthService != nil {
+		notificationHandler := handlers.NewNotificationHandler()
+		r.With(appmiddleware.RequireAuthFlexible(deps.AuthService)).Get("/api/web/notifications/unread-count", notificationHandler.UnreadCount)
+		r.With(appmiddleware.RequireAuthFlexible(deps.AuthService)).Get("/api/web/notifications/sse", notificationHandler.SSE)
 	}
 
 	if deps.SkillService != nil {

@@ -62,3 +62,15 @@ func (s *Service) AddMember(ctx context.Context, actor auth.Actor, input AddMemb
 func (s *Service) GetNamespace(ctx context.Context, slug string) (Namespace, error) {
 	return s.repo.GetBySlug(ctx, slug)
 }
+
+func (s *Service) ListMine(ctx context.Context, actor auth.Actor) ([]ManagedNamespaceView, error) {
+	rows, err := s.repo.ListNamespacesForUser(ctx, actor.UserID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]ManagedNamespaceView, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, managedViewFor(row))
+	}
+	return out, nil
+}

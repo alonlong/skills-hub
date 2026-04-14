@@ -10,8 +10,14 @@ type NotificationEventSource = {
 }
 type EventSourceFactory = (url: string) => NotificationEventSource
 type TimerApi = {
-  setTimeout: typeof setTimeout
-  clearTimeout: typeof clearTimeout
+  setTimeout: (fn: () => void, ms: number) => ReturnType<typeof setTimeout>
+  clearTimeout: (id: ReturnType<typeof setTimeout>) => void
+}
+
+/** Bound wrappers — bare `setTimeout`/`clearTimeout` on an object cause "Illegal invocation" in browsers. */
+const defaultTimerApi: TimerApi = {
+  setTimeout: (fn, ms) => globalThis.setTimeout(fn, ms),
+  clearTimeout: (id) => globalThis.clearTimeout(id),
 }
 
 export type NotificationSseConnection = {
@@ -27,7 +33,7 @@ export function createNotificationSseConnection(
   url: string,
   eventSourceFactory: EventSourceFactory = (targetUrl) =>
     new EventSource(targetUrl, { withCredentials: true }),
-  timerApi: TimerApi = { setTimeout, clearTimeout },
+  timerApi: TimerApi = defaultTimerApi,
 ): NotificationSseConnection {
   return new ManagedNotificationSseConnection(url, eventSourceFactory, timerApi)
 }

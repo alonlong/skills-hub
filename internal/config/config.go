@@ -47,7 +47,7 @@ func Load() Config {
 		BootstrapAdminEnabled:  os.Getenv("BOOTSTRAP_ADMIN_ENABLED") == "true",
 		BootstrapAdminUserID:   getenvDefault("BOOTSTRAP_ADMIN_USER_ID", "00000000-0000-0000-0000-000000000001"),
 		BootstrapAdminUsername: getenvDefault("BOOTSTRAP_ADMIN_USERNAME", "admin"),
-		BootstrapAdminPassword: getenvDefault("BOOTSTRAP_ADMIN_PASSWORD", "ChangeMe!2026"),
+		BootstrapAdminPassword: getenvDefault("BOOTSTRAP_ADMIN_PASSWORD", "123456"),
 		BootstrapAdminName:     getenvDefault("BOOTSTRAP_ADMIN_DISPLAY_NAME", "Admin"),
 		BootstrapAdminEmail:    getenvDefault("BOOTSTRAP_ADMIN_EMAIL", "admin@skillhub.local"),
 	}

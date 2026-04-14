@@ -26,15 +26,11 @@ describe('createNotificationSseConnection', () => {
   it('backs off reconnect attempts after repeated errors', () => {
     vi.useFakeTimers()
     const sources: FakeEventSource[] = []
-    const connection = createNotificationSseConnection(
-      '/api/web/notifications/sse',
-      () => {
-        const source = new FakeEventSource()
-        sources.push(source)
-        return source
-      },
-      { setTimeout, clearTimeout },
-    )
+    const connection = createNotificationSseConnection('/api/web/notifications/sse', () => {
+      const source = new FakeEventSource()
+      sources.push(source)
+      return source
+    })
 
     expect(sources).toHaveLength(1)
     sources[0].emit('error')
@@ -61,15 +57,11 @@ describe('createNotificationSseConnection', () => {
   it('resets reconnect delay after a successful open event', () => {
     vi.useFakeTimers()
     const sources: FakeEventSource[] = []
-    createNotificationSseConnection(
-      '/api/web/notifications/sse',
-      () => {
-        const source = new FakeEventSource()
-        sources.push(source)
-        return source
-      },
-      { setTimeout, clearTimeout },
-    )
+    createNotificationSseConnection('/api/web/notifications/sse', () => {
+      const source = new FakeEventSource()
+      sources.push(source)
+      return source
+    })
 
     sources[0].emit('error')
     vi.advanceTimersByTime(1_000)
