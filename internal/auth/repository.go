@@ -14,6 +14,7 @@ var errUserNotFound = errors.New("user not found")
 type Repository interface {
 	FindByUsername(ctx context.Context, username string) (userRecord, error)
 	FindByID(ctx context.Context, userID string) (userRecord, error)
+	UpdatePasswordHash(ctx context.Context, userID string, passwordHash string) error
 	EnsureBootstrapAdmin(ctx context.Context, cfg config.Config) error
 }
 
@@ -41,6 +42,25 @@ func (r *SQLRepository) FindByID(ctx context.Context, userID string) (userRecord
 		WHERE id = $1
 	`, userID)
 	return scanUser(row)
+}
+
+func (r *SQLRepository) UpdatePasswordHash(ctx context.Context, userID string, passwordHash string) error {
+	res, err := r.db.ExecContext(ctx, `
+		UPDATE users
+		SET password_hash = $1, updated_at = NOW()
+		WHERE id = $2
+	`, passwordHash, userID)
+	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return errUserNotFound
+	}
+	return nil
 }
 
 func (r *SQLRepository) EnsureBootstrapAdmin(ctx context.Context, cfg config.Config) error {

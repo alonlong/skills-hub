@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"skillhub/backend/internal/auth"
@@ -52,6 +53,39 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, user)
+}
+
+func (h *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	actor, ok := appmiddleware.ActorFromContext(r.Context())
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		return
+	}
+
+	var request struct {
+		CurrentPassword string `json:"currentPassword"`
+		NewPassword     string `json:"newPassword"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_request"})
+		return
+	}
+
+	err := h.service.ChangePassword(r.Context(), actor, request.CurrentPassword, request.NewPassword)
+	if errors.Is(err, auth.ErrChangePasswordInvalidCurrent) {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid_credentials"})
+		return
+	}
+	if errors.Is(err, auth.ErrChangePasswordWeak) || errors.Is(err, auth.ErrChangePasswordInvalidInput) {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid_request"})
+		return
+	}
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal_error"})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{})
 }
 
 func writeJSON(w http.ResponseWriter, status int, payload any) {

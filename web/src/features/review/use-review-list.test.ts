@@ -7,7 +7,7 @@ afterEach(() => {
 // useReviewList is a useQuery wrapper. The internal getReviewList function computes
 // totalElements and totalPages from the API response. While getReviewList itself is
 // not exported, its behaviour can be validated indirectly through the reviewApi
-// integration surface, similar to the pattern used in profile-review.test.ts.
+// integration surface.
 
 describe('use-review-list exports', () => {
   it('exports useReviewList', async () => {
@@ -47,5 +47,35 @@ describe('reviewApi.list response mapping', () => {
 
     expect(response.total).toBe(15)
     expect(response.items).toEqual([])
+  })
+
+  it('passes sortDirection through skill review list requests', async () => {
+    const createResponse = () => new Response(JSON.stringify({
+      code: 0,
+      msg: 'response.success',
+      data: {
+        items: [],
+        total: 0,
+        page: 0,
+        size: 20,
+      },
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(createResponse()))
+    vi.stubGlobal('fetch', fetchMock)
+    vi.stubGlobal('document', { cookie: '' })
+
+    const { reviewApi } = await import('@/api/client')
+
+    await reviewApi.list({ status: 'REJECTED', namespaceId: 9, page: 2, size: 5, sortDirection: 'ASC' })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/web/reviews?status=REJECTED&namespaceId=9&page=2&size=5&sortDirection=ASC',
+      expect.objectContaining({
+        headers: expect.any(Headers),
+      }),
+    )
   })
 })

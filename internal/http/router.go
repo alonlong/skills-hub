@@ -39,6 +39,7 @@ func NewRouter(cfg config.Config, deps Dependencies) http.Handler {
 		r.Route("/api/v1/auth", func(authRouter chi.Router) {
 			authRouter.Post("/login", authHandler.Login)
 			authRouter.With(appmiddleware.RequireAuth(deps.AuthService)).Get("/me", authHandler.Me)
+			authRouter.With(appmiddleware.RequireAuth(deps.AuthService)).Post("/local/change-password", authHandler.ChangePassword)
 		})
 	}
 

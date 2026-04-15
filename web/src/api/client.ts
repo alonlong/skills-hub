@@ -946,36 +946,6 @@ export const meApi = {
   },
 }
 
-export const profileApi = {
-  async getProfile(): Promise<{
-    displayName: string
-    avatarUrl: string | null
-    email: string | null
-    pendingChanges: {
-      status: string
-      changes: Record<string, string>
-      reviewComment: string | null
-      createdAt: string
-    } | null
-    fieldPolicies: Record<string, { editable: boolean; requiresReview: boolean }>
-  }> {
-    return fetchJson('/api/v1/user/profile')
-  },
-  async updateProfile(request: Record<string, string>): Promise<{
-    status: string
-    appliedFields?: Record<string, string>
-    pendingFields?: Record<string, string>
-  }> {
-    return fetchJson<{ status: string; appliedFields?: Record<string, string>; pendingFields?: Record<string, string> }>('/api/v1/user/profile', {
-      method: 'PATCH',
-      headers: await ensureCsrfHeaders({
-        'Content-Type': 'application/json',
-      }),
-      body: JSON.stringify(request),
-    })
-  },
-}
-
 export const adminApi = {
   async getUsers(params: { search?: string; status?: string; page?: number; size?: number }) {
     const searchParams = new URLSearchParams()
@@ -1070,54 +1040,6 @@ export const adminApi = {
       method: 'POST',
       headers: getCsrfHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ reason }),
-    })
-  },
-
-  async getProfileReviews(params: { status?: string; page?: number; size?: number; sortDirection?: 'ASC' | 'DESC' }) {
-    const searchParams = new URLSearchParams()
-    if (params.status) searchParams.set('status', params.status)
-    searchParams.set('page', String(params.page ?? 0))
-    searchParams.set('size', String(params.size ?? 20))
-    searchParams.set('sortDirection', params.sortDirection ?? 'DESC')
-    const response = await fetchJson<{
-      items: Array<{
-        id: number
-        userId: string
-        username: string
-        currentDisplayName: string | null
-        requestedDisplayName: string | null
-        status: string
-        machineResult: string | null
-        reviewerId: string | null
-        reviewerName: string | null
-        reviewComment: string | null
-        createdAt: string
-        reviewedAt: string | null
-      }>
-      total: number
-      page: number
-      size: number
-    }>(`/api/v1/admin/profile-reviews?${searchParams}`)
-
-    return {
-      ...response,
-      totalElements: response.total,
-      totalPages: response.size > 0 ? Math.ceil(response.total / response.size) : 0,
-    }
-  },
-
-  async approveProfileReview(id: number): Promise<void> {
-    await fetchJson<void>(`/api/v1/admin/profile-reviews/${id}/approve`, {
-      method: 'POST',
-      headers: getCsrfHeaders(),
-    })
-  },
-
-  async rejectProfileReview(id: number, comment: string): Promise<void> {
-    await fetchJson<void>(`/api/v1/admin/profile-reviews/${id}/reject`, {
-      method: 'POST',
-      headers: getCsrfHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ comment }),
     })
   },
 }

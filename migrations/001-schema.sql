@@ -1,5 +1,6 @@
 -- Full PostgreSQL schema for SkillHub (single source of truth).
 -- Used by Docker initdb (docker-compose) and any migrate tooling that applies this directory.
+-- Label tables at the end use IF NOT EXISTS so that block can be applied alone to DBs missing labels.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
@@ -105,7 +106,7 @@ CREATE INDEX idx_search_documents_fts ON search_documents USING GIN (document);
 
 -- Label definitions for filters and skill tagging (admin-managed).
 
-CREATE TABLE label_definitions (
+CREATE TABLE IF NOT EXISTS label_definitions (
     slug VARCHAR(64) PRIMARY KEY,
     type VARCHAR(32) NOT NULL,
     visible_in_filter BOOLEAN NOT NULL DEFAULT true,
@@ -113,11 +114,11 @@ CREATE TABLE label_definitions (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE label_translations (
+CREATE TABLE IF NOT EXISTS label_translations (
     label_slug VARCHAR(64) NOT NULL REFERENCES label_definitions (slug) ON DELETE CASCADE,
     locale VARCHAR(32) NOT NULL,
     display_name VARCHAR(256) NOT NULL,
     PRIMARY KEY (label_slug, locale)
 );
 
-CREATE INDEX idx_label_definitions_sort ON label_definitions (sort_order, slug);
+CREATE INDEX IF NOT EXISTS idx_label_definitions_sort ON label_definitions (sort_order, slug);

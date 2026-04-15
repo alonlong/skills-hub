@@ -3,10 +3,20 @@ package auth
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"skillhub/backend/internal/config"
 	"skillhub/backend/internal/platform"
 )
+
+// ErrChangePasswordInvalidCurrent is returned when the supplied current password does not match.
+var ErrChangePasswordInvalidCurrent = errors.New("invalid current password")
+
+// ErrChangePasswordWeak is returned when the new password does not meet minimum requirements.
+var ErrChangePasswordWeak = errors.New("new password too short")
+
+// ErrChangePasswordInvalidInput is returned when required password fields are missing or blank.
+var ErrChangePasswordInvalidInput = errors.New("password fields required")
 
 type Service struct {
 	repo   Repository
@@ -56,4 +66,32 @@ func (s *Service) CurrentUser(ctx context.Context, actor Actor) (User, error) {
 
 func (s *Service) AuthenticateToken(token string) (Actor, error) {
 	return s.issuer.Parse(token)
+}
+
+const minPasswordLength = 8
+
+// ChangePassword updates the password for the authenticated user after verifying the current password.
+func (s *Service) ChangePassword(ctx context.Context, actor Actor, currentPassword, newPassword string) error {
+	currentPassword = strings.TrimSpace(currentPassword)
+	newPassword = strings.TrimSpace(newPassword)
+	if currentPassword == "" || newPassword == "" {
+		return ErrChangePasswordInvalidInput
+	}
+	if len(newPassword) < minPasswordLength {
+		return ErrChangePasswordWeak
+	}
+
+	record, err := s.repo.FindByID(ctx, actor.UserID)
+	if err != nil {
+		return err
+	}
+	if err := platform.CheckPassword(record.PasswordHash, currentPassword); err != nil {
+		return ErrChangePasswordInvalidCurrent
+	}
+
+	hash, err := platform.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	return s.repo.UpdatePasswordHash(ctx, actor.UserID, hash)
 }

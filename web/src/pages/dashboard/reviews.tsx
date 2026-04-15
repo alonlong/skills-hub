@@ -18,8 +18,6 @@ import { useReviewList } from '@/features/review/use-review-list'
 import { useAuth } from '@/features/auth/use-auth'
 import { DashboardPageHeader } from '@/shared/components/dashboard-page-header'
 import { formatLocalDateTime } from '@/shared/lib/date-time'
-import { ProfileReviewTable } from './profile-review-table'
-
 type ReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 type TimeSortDirection = 'ASC' | 'DESC'
 const PAGE_SIZE = 20
@@ -43,10 +41,6 @@ export function ReviewsPage() {
 
   const isSkillAdmin = hasRole('SKILL_ADMIN') || hasRole('SUPER_ADMIN')
   const isUserAdmin = hasRole('USER_ADMIN') || hasRole('SUPER_ADMIN')
-  const showTypeTabs = isSkillAdmin && isUserAdmin
-
-  // Determine default top-level tab
-  const defaultType = isSkillAdmin ? 'skill' : 'profile'
 
   const pendingQuery = useReviewList('PENDING', undefined, pages.PENDING, PAGE_SIZE, sortDirection, activeStatus === 'PENDING')
   const approvedQuery = useReviewList('APPROVED', undefined, pages.APPROVED, PAGE_SIZE, sortDirection, activeStatus === 'APPROVED')
@@ -235,33 +229,12 @@ export function ReviewsPage() {
     <div className="space-y-8 animate-fade-up">
       <DashboardPageHeader title={t('reviews.title')} subtitle={t('reviews.subtitle')} />
 
-      {showTypeTabs ? (
-        <Tabs defaultValue={defaultType}>
-          <TabsList className="gap-2 rounded-2xl border-b-0 bg-muted/80 p-1 shadow-sm">
-            <TabsTrigger
-              value="skill"
-              className="mb-0 rounded-xl border-b-0 px-5 py-3 text-base font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground"
-            >
-              {t('reviews.typeSkill')}
-            </TabsTrigger>
-            <TabsTrigger
-              value="profile"
-              className="mb-0 rounded-xl border-b-0 px-5 py-3 text-base font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground"
-            >
-              {t('reviews.typeProfile')}
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="skill" className="mt-6">
-            {renderSkillReviewContent()}
-          </TabsContent>
-          <TabsContent value="profile" className="mt-6">
-            <ProfileReviewTable />
-          </TabsContent>
-        </Tabs>
-      ) : isSkillAdmin ? (
+      {isSkillAdmin ? (
         renderSkillReviewContent()
       ) : isUserAdmin ? (
-        <ProfileReviewTable />
+        <div className="rounded-xl border border-dashed border-border/70 p-10 text-center text-muted-foreground">
+          {t('reviews.userAdminOnlyEmpty')}
+        </div>
       ) : null}
     </div>
   )

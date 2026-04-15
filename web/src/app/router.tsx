@@ -110,10 +110,6 @@ const SecuritySettingsPage = createLazyRouteComponent(
   () => import('@/pages/settings/security'),
   'SecuritySettingsPage',
 )
-const ProfileSettingsPage = createLazyRouteComponent(
-  () => import('@/pages/settings/profile'),
-  'ProfileSettingsPage',
-)
 const AdminUsersPage = createRoleProtectedRouteComponent(
   () => import('@/pages/admin/users'),
   'AdminUsersPage',
@@ -310,13 +306,6 @@ const settingsSecurityRoute = createRoute({
   component: SecuritySettingsPage,
 })
 
-const settingsProfileRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: 'settings/profile',
-  beforeLoad: requireAuth,
-  component: ProfileSettingsPage,
-})
-
 const adminUsersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'admin/users',
@@ -354,7 +343,6 @@ const routeTree = rootRoute.addChildren([
   dashboardPromotionsRoute,
   dashboardTokensRoute,
   settingsSecurityRoute,
-  settingsProfileRoute,
   adminUsersRoute,
   adminLabelsRoute,
 ])

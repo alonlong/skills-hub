@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -118,6 +119,9 @@ func writeLabelError(w http.ResponseWriter, err error) {
 	case errors.Is(err, label.ErrInvalid):
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid"})
 	default:
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		// DB connectivity, missing schema, and other unexpected failures are server errors;
+		// do not surface raw driver messages as 400 Bad Request.
+		log.Printf("label admin: %v", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal_error"})
 	}
 }

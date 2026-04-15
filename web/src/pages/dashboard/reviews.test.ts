@@ -71,10 +71,6 @@ vi.mock('@/shared/lib/date-time', () => ({
   formatLocalDateTime: (v: string) => v,
 }))
 
-vi.mock('./profile-review-table', () => ({
-  ProfileReviewTable: () => null,
-}))
-
 import { ReviewsPage } from './reviews'
 
 describe('ReviewsPage', () => {
