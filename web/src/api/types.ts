@@ -408,19 +408,6 @@ export interface AdminUser {
   createdAt: string
 }
 
-export interface AuditLogItem {
-  id: string
-  userId?: string
-  username?: string
-  action: string
-  details?: string
-  requestId?: string
-  resourceType?: string
-  resourceId?: string
-  timestamp: string
-  ipAddress?: string
-}
-
 // Notification types
 export interface NotificationItem {
   id: number

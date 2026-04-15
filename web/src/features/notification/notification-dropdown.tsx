@@ -117,7 +117,7 @@ export function NotificationDropdown({ onClose }: Props) {
       {/* Footer */}
       <div className="px-4 py-2.5 border-t text-center" style={{ borderColor: 'hsl(var(--border))' }}>
         <Link
-          to="/dashboard"
+          to="/dashboard/skills"
           onClick={onClose}
           className="text-xs hover:opacity-70 transition-opacity"
           style={{ color: 'hsl(var(--text-secondary))' }}

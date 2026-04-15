@@ -103,7 +103,7 @@ export function SearchPage() {
   return (
     <div className={APP_SHELL_PAGE_CLASS_NAME}>
       {/* Search Bar */}
-      <div className="max-w-3xl mx-auto">
+      <div className="mx-auto max-w-[min(100%,62.4rem)]">
         <SearchBar
           value={queryInput}
           isSearching={isUpdatingResults}

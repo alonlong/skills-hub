@@ -23,7 +23,7 @@ export function LoginPage() {
   const [fieldErrors, setFieldErrors] = useState<{ username?: string, password?: string }>({})
   const isChinese = i18n.resolvedLanguage?.split('-')[0] === 'zh'
 
-  const returnTo = search.returnTo && search.returnTo.startsWith('/') ? search.returnTo : '/dashboard'
+  const returnTo = search.returnTo && search.returnTo.startsWith('/') ? search.returnTo : '/dashboard/skills'
   const disabledMessage = search.reason === 'accountDisabled' ? t('apiError.auth.accountDisabled') : null
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {

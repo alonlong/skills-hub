@@ -109,94 +109,90 @@ describe('AdminLabelsPage', () => {
     expect(html).toContain('adminLabels.deleteAction')
   })
 
-  it('normalizes slugs and locales before submission', () => {
-    const normalized = normalizeLabelFormState({
-      slug: ' Code-Generation ',
-      type: 'RECOMMENDED',
-      visibleInFilter: true,
-      sortOrder: Number.NaN,
-      translations: [
-        { locale: ' ZH_cn ', displayName: ' 代码生成 ' },
-        { locale: ' ', displayName: ' ' },
-      ],
-    })
+  it('normalizes slug and maps display name to the active UI locale', () => {
+    const normalized = normalizeLabelFormState(
+      {
+        slug: ' Code-Generation ',
+        type: 'RECOMMENDED',
+        visibleInFilter: true,
+        sortOrder: Number.NaN,
+        displayName: ' 代码生成 ',
+      },
+      'zh-CN',
+    )
 
     expect(normalized.slug).toBe('code-generation')
     expect(normalized.sortOrder).toBe(0)
     expect(normalized.translations).toEqual([{ locale: 'zh-cn', displayName: '代码生成' }])
   })
 
-  it('rejects invalid slug patterns and duplicate locales in validation', () => {
-    expect(validateLabelFormState({
-      slug: 'code_generation',
-      type: 'RECOMMENDED',
-      visibleInFilter: true,
-      sortOrder: 0,
-      translations: [{ locale: 'en', displayName: 'Code Generation' }],
-    })).toEqual({
+  it('rejects invalid slug patterns in validation', () => {
+    expect(
+      validateLabelFormState({
+        slug: 'code_generation',
+        type: 'RECOMMENDED',
+        visibleInFilter: true,
+        sortOrder: 0,
+        displayName: 'Code Generation',
+      }),
+    ).toEqual({
       titleKey: 'adminLabels.validationSlugTitle',
       descriptionKey: 'adminLabels.validationSlugPatternDescription',
-    })
-
-    expect(validateLabelFormState({
-      slug: 'code-generation',
-      type: 'RECOMMENDED',
-      visibleInFilter: true,
-      sortOrder: 0,
-      translations: [
-        { locale: 'en', displayName: 'Code Generation' },
-        { locale: 'en', displayName: 'Code Generation Copy' },
-      ],
-    })).toEqual({
-      titleKey: 'adminLabels.validationTranslationsTitle',
-      descriptionKey: 'adminLabels.validationDuplicateLocaleDescription',
     })
   })
 
   it('rejects empty slug in validation', () => {
-    expect(validateLabelFormState({
-      slug: '',
-      type: 'RECOMMENDED',
-      visibleInFilter: true,
-      sortOrder: 0,
-      translations: [{ locale: 'en', displayName: 'Test' }],
-    })).toEqual({
+    expect(
+      validateLabelFormState({
+        slug: '',
+        type: 'RECOMMENDED',
+        visibleInFilter: true,
+        sortOrder: 0,
+        displayName: 'Test',
+      }),
+    ).toEqual({
       titleKey: 'adminLabels.validationSlugTitle',
       descriptionKey: 'adminLabels.validationSlugDescription',
     })
   })
 
-  it('rejects empty translations in validation', () => {
-    expect(validateLabelFormState({
-      slug: 'valid-slug',
-      type: 'RECOMMENDED',
-      visibleInFilter: true,
-      sortOrder: 0,
-      translations: [],
-    })).toEqual({
-      titleKey: 'adminLabels.validationTranslationsTitle',
-      descriptionKey: 'adminLabels.validationTranslationsDescription',
+  it('rejects empty display name in validation', () => {
+    expect(
+      validateLabelFormState({
+        slug: 'valid-slug',
+        type: 'RECOMMENDED',
+        visibleInFilter: true,
+        sortOrder: 0,
+        displayName: '  ',
+      }),
+    ).toEqual({
+      titleKey: 'adminLabels.validationDisplayNameTitle',
+      descriptionKey: 'adminLabels.validationDisplayNameDescription',
     })
   })
 
   it('accepts valid form state in validation', () => {
-    expect(validateLabelFormState({
-      slug: 'valid-slug',
-      type: 'RECOMMENDED',
-      visibleInFilter: true,
-      sortOrder: 0,
-      translations: [{ locale: 'en', displayName: 'Valid Label' }],
-    })).toBeNull()
+    expect(
+      validateLabelFormState({
+        slug: 'valid-slug',
+        type: 'RECOMMENDED',
+        visibleInFilter: true,
+        sortOrder: 0,
+        displayName: 'Valid Label',
+      }),
+    ).toBeNull()
   })
 
   it('rejects slug with consecutive hyphens', () => {
-    expect(validateLabelFormState({
-      slug: 'bad--slug',
-      type: 'RECOMMENDED',
-      visibleInFilter: true,
-      sortOrder: 0,
-      translations: [{ locale: 'en', displayName: 'Bad' }],
-    })).toEqual({
+    expect(
+      validateLabelFormState({
+        slug: 'bad--slug',
+        type: 'RECOMMENDED',
+        visibleInFilter: true,
+        sortOrder: 0,
+        displayName: 'Bad',
+      }),
+    ).toEqual({
       titleKey: 'adminLabels.validationSlugTitle',
       descriptionKey: 'adminLabels.validationSlugPatternDescription',
     })

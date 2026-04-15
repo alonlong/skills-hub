@@ -53,7 +53,7 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
       return
     }
 
-    void navigate({ to: '/dashboard', replace: true })
+    void navigate({ to: '/dashboard/skills', replace: true })
   }, [isAllowed, isLoading, navigate, t, user])
 
   if (isLoading) {

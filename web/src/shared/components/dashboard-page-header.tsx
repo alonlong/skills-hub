@@ -18,9 +18,9 @@ export function DashboardPageHeader({ title, subtitle, actions }: DashboardPageH
 
   return (
     <div className="space-y-4">
-      <Button variant="ghost" className="px-0 text-muted-foreground hover:text-foreground" onClick={() => navigate({ to: '/dashboard' })}>
+      <Button variant="ghost" className="px-0 text-muted-foreground hover:text-foreground" onClick={() => navigate({ to: '/' })}>
         <ArrowLeft className="mr-2 h-4 w-4" />
-        {t('dashboard.backToDashboard')}
+        {t('dashboard.backToHome')}
       </Button>
       <div className="flex items-center justify-between gap-4">
         <div>

@@ -46,7 +46,7 @@ export function HomePage() {
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto animate-fade-up delay-1">
+        <div className="mx-auto max-w-[min(100%,54.6rem)] animate-fade-up delay-1">
           <SearchBar onSearch={handleSearch} />
         </div>
 

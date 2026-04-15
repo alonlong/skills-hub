@@ -12,6 +12,7 @@ import (
 	"skillhub/backend/internal/admin"
 	"skillhub/backend/internal/auth"
 	"skillhub/backend/internal/config"
+	"skillhub/backend/internal/label"
 	aphttp "skillhub/backend/internal/http"
 	"skillhub/backend/internal/namespace"
 	"skillhub/backend/internal/search"
@@ -62,11 +63,15 @@ func newHandler(cfg config.Config, db *sql.DB) (http.Handler, error) {
 	reviewRepo := postgres.NewReviewRepository(db)
 	adminService := admin.NewService(reviewRepo)
 
+	labelRepo := postgres.NewLabelRepository(db)
+	labelService := label.NewService(labelRepo)
+
 	return aphttp.NewRouter(cfg, aphttp.Dependencies{
 		AuthService:      authService,
 		NamespaceService: namespaceService,
 		SkillService:     skillService,
 		AdminService:     adminService,
 		SearchService:    searchService,
+		LabelService:     labelService,
 	}), nil
 }

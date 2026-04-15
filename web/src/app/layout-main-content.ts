@@ -3,6 +3,8 @@ export const DEFAULT_MAIN_CLASS_NAME = 'flex-1 relative z-10 px-6 py-10 md:px-12
 export const CENTERED_MAIN_CLASS_NAME = 'flex-1 relative z-10 px-4 py-8 sm:px-6 md:px-8 md:py-10 lg:px-10 xl:px-14 2xl:px-20'
 export const CENTERED_SEARCH_CONTENT_CLASS_NAME = 'mx-auto w-full max-w-[1200px]'
 export const CENTERED_DASHBOARD_CONTENT_CLASS_NAME = 'mx-auto w-full max-w-[1200px]'
+/** Publish skill form: ~20% wider than other dashboard pages (1200px → 1440px). */
+export const CENTERED_DASHBOARD_PUBLISH_CONTENT_CLASS_NAME = 'mx-auto w-full max-w-[1440px]'
 
 interface AppMainContentLayout {
   mainClassName: string
@@ -28,6 +30,13 @@ export function getAppMainContentLayout(pathname: string): AppMainContentLayout 
     return {
       mainClassName: CENTERED_MAIN_CLASS_NAME,
       contentClassName: CENTERED_SEARCH_CONTENT_CLASS_NAME,
+    }
+  }
+
+  if (pathname === '/dashboard/publish') {
+    return {
+      mainClassName: CENTERED_MAIN_CLASS_NAME,
+      contentClassName: CENTERED_DASHBOARD_PUBLISH_CONTENT_CLASS_NAME,
     }
   }
 

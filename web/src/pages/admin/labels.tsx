@@ -23,7 +23,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Label } from '@/shared/ui/label'
-import type { AdminLabelInput, LabelDefinition, LabelTranslation } from '@/api/types'
+import type { AdminLabelInput, LabelDefinition } from '@/api/types'
 import {
   useAdminLabelDefinitions,
   useCreateAdminLabel,
@@ -32,19 +32,43 @@ import {
   useUpdateAdminLabelSortOrder,
 } from '@/features/admin/use-admin-labels'
 
-type LabelFormState = AdminLabelInput
+export type LabelFormState = {
+  slug: string
+  type: 'RECOMMENDED' | 'PRIVILEGED'
+  visibleInFilter: boolean
+  sortOrder: number
+  displayName: string
+}
 
-const EMPTY_TRANSLATION: LabelTranslation = { locale: '', displayName: '' }
 const LABEL_SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/
 
-function toFormState(definition?: LabelDefinition): LabelFormState {
+function pickDisplayName(definition: LabelDefinition, preferredLocale: string): string {
+  if (definition.translations.length === 0) {
+    return ''
+  }
+  const normalized = preferredLocale.trim().replace(/_/g, '-').toLowerCase()
+  const exact = definition.translations.find((item) => item.locale.toLowerCase() === normalized)
+  if (exact) {
+    return exact.displayName
+  }
+  const language = normalized.split('-')[0]
+  const languageMatch = definition.translations.find(
+    (item) => item.locale.toLowerCase().split('-')[0] === language,
+  )
+  if (languageMatch) {
+    return languageMatch.displayName
+  }
+  return definition.translations[0]?.displayName ?? ''
+}
+
+function toFormState(definition: LabelDefinition | undefined, preferredLocale: string): LabelFormState {
   if (!definition) {
     return {
       slug: '',
       type: 'RECOMMENDED',
       visibleInFilter: true,
       sortOrder: 0,
-      translations: [{ ...EMPTY_TRANSLATION }],
+      displayName: '',
     }
   }
 
@@ -53,21 +77,18 @@ function toFormState(definition?: LabelDefinition): LabelFormState {
     type: definition.type === 'PRIVILEGED' ? 'PRIVILEGED' : 'RECOMMENDED',
     visibleInFilter: definition.visibleInFilter,
     sortOrder: definition.sortOrder,
-    translations: definition.translations.length > 0 ? definition.translations : [{ ...EMPTY_TRANSLATION }],
+    displayName: pickDisplayName(definition, preferredLocale),
   }
 }
 
-export function normalizeLabelFormState(form: LabelFormState): LabelFormState {
+export function normalizeLabelFormState(form: LabelFormState, uiLocale: string): AdminLabelInput {
+  const locale = uiLocale.trim().replace(/_/g, '-').toLowerCase() || 'en'
   return {
-    ...form,
     slug: form.slug.trim().toLowerCase(),
+    type: form.type,
+    visibleInFilter: form.visibleInFilter,
     sortOrder: Number.isFinite(form.sortOrder) ? form.sortOrder : 0,
-    translations: form.translations
-      .map((translation) => ({
-        locale: translation.locale.trim().replace(/_/g, '-').toLowerCase(),
-        displayName: translation.displayName.trim(),
-      }))
-      .filter((translation) => translation.locale && translation.displayName),
+    translations: [{ locale, displayName: form.displayName.trim() }],
   }
 }
 
@@ -87,18 +108,10 @@ export function validateLabelFormState(form: LabelFormState): {
       descriptionKey: 'adminLabels.validationSlugPatternDescription',
     }
   }
-  if (form.translations.length === 0) {
+  if (!form.displayName.trim()) {
     return {
-      titleKey: 'adminLabels.validationTranslationsTitle',
-      descriptionKey: 'adminLabels.validationTranslationsDescription',
-    }
-  }
-
-  const uniqueLocales = new Set(form.translations.map((translation) => translation.locale))
-  if (uniqueLocales.size !== form.translations.length) {
-    return {
-      titleKey: 'adminLabels.validationTranslationsTitle',
-      descriptionKey: 'adminLabels.validationDuplicateLocaleDescription',
+      titleKey: 'adminLabels.validationDisplayNameTitle',
+      descriptionKey: 'adminLabels.validationDisplayNameDescription',
     }
   }
 
@@ -127,7 +140,7 @@ export function AdminLabelsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [editingSlug, setEditingSlug] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<LabelDefinition | null>(null)
-  const [form, setForm] = useState<LabelFormState>(toFormState())
+  const [form, setForm] = useState<LabelFormState>(() => toFormState(undefined, i18n.language))
 
   const sortedDefinitions: LabelDefinition[] = [...(definitions ?? [])].sort((a: LabelDefinition, b: LabelDefinition) => {
     if (a.sortOrder !== b.sortOrder) {
@@ -138,55 +151,31 @@ export function AdminLabelsPage() {
 
   useEffect(() => {
     if (!dialogOpen) {
-      setForm(toFormState())
+      setForm(toFormState(undefined, i18n.language))
       setEditingSlug(null)
     }
-  }, [dialogOpen])
+  }, [dialogOpen, i18n.language])
 
   const openCreateDialog = () => {
     setEditingSlug(null)
-    setForm(toFormState())
+    setForm(toFormState(undefined, i18n.language))
     setDialogOpen(true)
   }
 
   const openEditDialog = (definition: LabelDefinition) => {
     setEditingSlug(definition.slug)
-    setForm(toFormState(definition))
+    setForm(toFormState(definition, i18n.language))
     setDialogOpen(true)
   }
 
-  const handleTranslationChange = (index: number, field: keyof LabelTranslation, value: string) => {
-    setForm((current) => ({
-      ...current,
-      translations: current.translations.map((translation, translationIndex) =>
-        translationIndex === index ? { ...translation, [field]: value } : translation,
-      ),
-    }))
-  }
-
-  const addTranslation = () => {
-    setForm((current) => ({
-      ...current,
-      translations: [...current.translations, { ...EMPTY_TRANSLATION }],
-    }))
-  }
-
-  const removeTranslation = (index: number) => {
-    setForm((current) => ({
-      ...current,
-      translations: current.translations.length === 1
-        ? [{ ...EMPTY_TRANSLATION }]
-        : current.translations.filter((_, translationIndex) => translationIndex !== index),
-    }))
-  }
-
   const handleSubmit = async () => {
-    const normalized = normalizeLabelFormState(form)
-    const validationError = validateLabelFormState(normalized)
+    const validationError = validateLabelFormState(form)
     if (validationError) {
       toast.error(t(validationError.titleKey), t(validationError.descriptionKey))
       return
     }
+
+    const normalized = normalizeLabelFormState(form, i18n.language)
 
     try {
       if (editingSlug) {
@@ -291,7 +280,6 @@ export function AdminLabelsPage() {
                 <TableHead>{t('adminLabels.colType')}</TableHead>
                 <TableHead>{t('adminLabels.colVisibility')}</TableHead>
                 <TableHead>{t('adminLabels.colSortOrder')}</TableHead>
-                <TableHead>{t('adminLabels.colTranslations')}</TableHead>
                 <TableHead>{t('adminLabels.colCreatedAt')}</TableHead>
                 <TableHead>{t('adminLabels.colActions')}</TableHead>
               </TableRow>
@@ -310,7 +298,6 @@ export function AdminLabelsPage() {
                     {definition.visibleInFilter ? t('adminLabels.visibilityVisible') : t('adminLabels.visibilityHidden')}
                   </TableCell>
                   <TableCell>{definition.sortOrder}</TableCell>
-                  <TableCell>{definition.translations.length}</TableCell>
                   <TableCell>{definition.createdAt ? formatLocalDateTime(definition.createdAt, i18n.language) : '-'}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
@@ -358,9 +345,19 @@ export function AdminLabelsPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="label-slug">{t('adminLabels.formSlug')}</Label>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="label-display-name">{t('adminLabels.formDisplayName')}</Label>
+            <Input
+              id="label-display-name"
+              value={form.displayName}
+              onChange={(event) => setForm((current) => ({ ...current, displayName: event.target.value }))}
+              placeholder={t('adminLabels.formDisplayNamePlaceholder')}
+            />
+            <p className="text-xs text-muted-foreground">{t('adminLabels.formDisplayNameHint')}</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="label-slug">{t('adminLabels.formSlug')}</Label>
               <Input
                 id="label-slug"
                 value={form.slug}
@@ -406,38 +403,6 @@ export function AdminLabelsPage() {
                 value={String(form.sortOrder)}
                 onChange={(event) => setForm((current) => ({ ...current, sortOrder: Number(event.target.value) }))}
               />
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm font-semibold text-foreground">{t('adminLabels.formTranslations')}</div>
-                <div className="text-xs text-muted-foreground">{t('adminLabels.formTranslationsHint')}</div>
-              </div>
-              <Button type="button" variant="outline" size="sm" onClick={addTranslation}>
-                {t('adminLabels.addTranslation')}
-              </Button>
-            </div>
-
-            <div className="space-y-3">
-              {form.translations.map((translation, index) => (
-                <div key={`${editingSlug ?? 'new'}-${index}`} className="grid gap-3 rounded-xl border border-border/60 p-3 md:grid-cols-[140px_minmax(0,1fr)_96px]">
-                  <Input
-                    placeholder={t('adminLabels.translationLocalePlaceholder')}
-                    value={translation.locale}
-                    onChange={(event) => handleTranslationChange(index, 'locale', event.target.value)}
-                  />
-                  <Input
-                    placeholder={t('adminLabels.translationDisplayNamePlaceholder')}
-                    value={translation.displayName}
-                    onChange={(event) => handleTranslationChange(index, 'displayName', event.target.value)}
-                  />
-                  <Button type="button" variant="outline" onClick={() => removeTranslation(index)}>
-                    {t('adminLabels.removeTranslation')}
-                  </Button>
-                </div>
-              ))}
             </div>
           </div>
 

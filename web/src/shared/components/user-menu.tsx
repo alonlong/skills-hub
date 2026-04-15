@@ -4,7 +4,6 @@ import { Link } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { authApi } from '@/api/client'
 import { clearSessionScopedQueries } from '@/features/notification/notification-session'
-import { canViewGovernanceCenter } from '@/shared/lib/governance-access'
 import { cn } from '@/shared/lib/utils'
 
 interface User {
@@ -28,13 +27,8 @@ export function UserMenu({ user, triggerClassName }: UserMenuProps) {
   const [isClickOpen, setIsClickOpen] = useState(false)
 
   const hasRole = (role: string) => user.platformRoles?.includes(role) ?? false
-  const isReviewer = hasRole('SKILL_ADMIN') || hasRole('NAMESPACE_ADMIN') || hasRole('SUPER_ADMIN')
-  const canSeeGovernance = canViewGovernanceCenter(user.platformRoles)
-  const isSkillAdmin = hasRole('SKILL_ADMIN') || hasRole('SUPER_ADMIN')
   const isUserAdmin = hasRole('USER_ADMIN') || hasRole('SUPER_ADMIN')
-  const isAuditor = hasRole('AUDITOR') || hasRole('SUPER_ADMIN')
   const isSuperAdmin = hasRole('SUPER_ADMIN')
-  const canAccessReviewCenter = isReviewer || isUserAdmin
   const isLocalAccount = !user.oauthProvider
   const open = isHovered || isClickOpen
 
@@ -140,36 +134,10 @@ export function UserMenu({ user, triggerClassName }: UserMenuProps) {
             role="menu"
             className="overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
           >
-            <Link to="/dashboard" className={menuItemClassName} onClick={closeMenu}>
-              {t('user.menu.dashboard')}
-            </Link>
-            <Link to="/dashboard/skills" className={menuItemClassName} onClick={closeMenu}>
-              {t('user.menu.mySkills')}
-            </Link>
             <Link to="/dashboard/namespaces" className={menuItemClassName} onClick={closeMenu}>
               {t('user.menu.myNamespaces')}
             </Link>
-            {canSeeGovernance ? (
-              <Link to="/dashboard/governance" className={menuItemClassName} onClick={closeMenu}>
-                {t('user.menu.governance')}
-              </Link>
-            ) : null}
-            {canAccessReviewCenter ? (
-              <Link to="/dashboard/reviews" className={menuItemClassName} onClick={closeMenu}>
-                {t('user.menu.reviews')}
-              </Link>
-            ) : null}
-            {isSkillAdmin ? (
-              <Link to="/dashboard/promotions" className={menuItemClassName} onClick={closeMenu}>
-                {t('user.menu.promotions')}
-              </Link>
-            ) : null}
-            {isSkillAdmin ? (
-              <Link to="/dashboard/reports" className={menuItemClassName} onClick={closeMenu}>
-                {t('user.menu.reports')}
-              </Link>
-            ) : null}
-            {isUserAdmin || isAuditor || isSuperAdmin ? <div className="-mx-1 my-1 h-px bg-muted" /> : null}
+            {isUserAdmin || isSuperAdmin ? <div className="-mx-1 my-1 h-px bg-muted" /> : null}
             {isUserAdmin ? (
               <Link to="/admin/users" className={menuItemClassName} onClick={closeMenu}>
                 {t('user.menu.users')}
@@ -178,11 +146,6 @@ export function UserMenu({ user, triggerClassName }: UserMenuProps) {
             {isSuperAdmin ? (
               <Link to="/admin/labels" className={menuItemClassName} onClick={closeMenu}>
                 {t('user.menu.labels')}
-              </Link>
-            ) : null}
-            {isAuditor ? (
-              <Link to="/admin/audit-log" className={menuItemClassName} onClick={closeMenu}>
-                {t('user.menu.auditLog')}
               </Link>
             ) : null}
             <div className="-mx-1 my-1 h-px bg-muted" />

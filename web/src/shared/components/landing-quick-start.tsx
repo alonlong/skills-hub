@@ -88,8 +88,8 @@ export function LandingQuickStartSection() {
   const currentTab = tabs.find((tab) => tab.id === activeTab) ?? tabs[0]
 
   return (
-    <section className="relative z-10 w-full px-6 py-14 md:py-16" style={{ background: 'var(--bg-page, hsl(var(--background)))' }}>
-      <div className="max-w-4xl mx-auto">
+    <section className="relative z-10 w-full px-6 pt-6 pb-12 md:pt-8 md:pb-14" style={{ background: 'var(--bg-page, hsl(var(--background)))' }}>
+      <div className="mx-auto max-w-[min(100%,72.8rem)]">
         <div className="text-center mb-7 md:mb-8">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3" style={{ color: 'hsl(var(--foreground))' }}>
             {t('landing.quickStart.title')}
@@ -100,7 +100,7 @@ export function LandingQuickStartSection() {
         </div>
 
         <div
-          className="mx-auto max-w-2xl rounded-[28px] border bg-white p-3 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.25)]"
+          className="mx-auto max-w-[min(100%,54.6rem)] rounded-[28px] border bg-white p-3 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.25)]"
           style={{ borderColor: 'hsl(var(--border-card))' }}
         >
           <div
@@ -143,9 +143,9 @@ export function LandingQuickStartSection() {
               className="relative rounded-2xl border bg-slate-50/90 px-4 py-3 pr-14 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
               style={{ borderColor: 'hsl(var(--border))' }}
             >
-              <div className="overflow-x-auto whitespace-nowrap">
+              <div className="min-w-0">
                 <code
-                  className="font-mono text-sm md:text-base"
+                  className="block font-mono text-sm md:text-base break-all whitespace-pre-wrap leading-relaxed"
                   style={{ color: currentTab.id === 'agent' ? '#16A34A' : '#0F172A' }}
                 >
                   {currentTab.command}

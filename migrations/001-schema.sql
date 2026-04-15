@@ -102,3 +102,22 @@ CREATE TABLE search_documents (
 );
 
 CREATE INDEX idx_search_documents_fts ON search_documents USING GIN (document);
+
+-- Label definitions for filters and skill tagging (admin-managed).
+
+CREATE TABLE label_definitions (
+    slug VARCHAR(64) PRIMARY KEY,
+    type VARCHAR(32) NOT NULL,
+    visible_in_filter BOOLEAN NOT NULL DEFAULT true,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE label_translations (
+    label_slug VARCHAR(64) NOT NULL REFERENCES label_definitions (slug) ON DELETE CASCADE,
+    locale VARCHAR(32) NOT NULL,
+    display_name VARCHAR(256) NOT NULL,
+    PRIMARY KEY (label_slug, locale)
+);
+
+CREATE INDEX idx_label_definitions_sort ON label_definitions (sort_order, slug);

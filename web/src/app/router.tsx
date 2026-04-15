@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ComponentType } from 'react'
-import { createRouter, createRoute, createRootRoute } from '@tanstack/react-router'
+import { createRouter, createRoute, createRootRoute, redirect } from '@tanstack/react-router'
 import { Layout } from './layout'
 import { getCurrentUser } from '@/api/client'
 import { RoleGuard } from '@/shared/components/role-guard'
@@ -70,7 +70,6 @@ const SearchPage = createLazyRouteComponent(() => import('@/pages/search'), 'Sea
 const TermsOfServicePage = createLazyRouteComponent(() => import('@/pages/terms'), 'TermsOfServicePage')
 const NamespacePage = createLazyRouteComponent(() => import('@/pages/namespace'), 'NamespacePage')
 const SkillDetailPage = createLazyRouteComponent(() => import('@/pages/skill-detail'), 'SkillDetailPage')
-const DashboardPage = createLazyRouteComponent(() => import('@/pages/dashboard'), 'DashboardPage')
 const MySkillsPage = createLazyRouteComponent(() => import('@/pages/dashboard/my-skills'), 'MySkillsPage')
 const PublishPage = createLazyRouteComponent(() => import('@/pages/dashboard/publish'), 'PublishPage')
 const MyNamespacesPage = createLazyRouteComponent(
@@ -119,11 +118,6 @@ const AdminUsersPage = createRoleProtectedRouteComponent(
   () => import('@/pages/admin/users'),
   'AdminUsersPage',
   ['USER_ADMIN', 'SUPER_ADMIN'],
-)
-const AuditLogPage = createRoleProtectedRouteComponent(
-  () => import('@/pages/admin/audit-log'),
-  'AuditLogPage',
-  ['AUDITOR', 'SUPER_ADMIN'],
 )
 const AdminLabelsPage = createRoleProtectedRouteComponent(
   () => import('@/pages/admin/labels'),
@@ -220,11 +214,16 @@ const skillDetailRoute = createRoute({
   component: SkillDetailPage,
 })
 
+const DashboardRootRedirect = () => null
+
 const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'dashboard',
-  beforeLoad: requireAuth,
-  component: DashboardPage,
+  beforeLoad: async (ctx) => {
+    await requireAuth(ctx)
+    throw redirect({ to: '/dashboard/skills', replace: true })
+  },
+  component: DashboardRootRedirect,
 })
 
 const dashboardSkillsRoute = createRoute({
@@ -325,13 +324,6 @@ const adminUsersRoute = createRoute({
   component: AdminUsersPage,
 })
 
-const adminAuditLogRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: 'admin/audit-log',
-  beforeLoad: requireAuth,
-  component: AuditLogPage,
-})
-
 const adminLabelsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'admin/labels',
@@ -364,7 +356,6 @@ const routeTree = rootRoute.addChildren([
   settingsSecurityRoute,
   settingsProfileRoute,
   adminUsersRoute,
-  adminAuditLogRoute,
   adminLabelsRoute,
 ])
 

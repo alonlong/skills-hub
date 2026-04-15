@@ -11,6 +11,7 @@ import (
 	"skillhub/backend/internal/config"
 	"skillhub/backend/internal/http/handlers"
 	appmiddleware "skillhub/backend/internal/http/middleware"
+	"skillhub/backend/internal/label"
 	"skillhub/backend/internal/namespace"
 	"skillhub/backend/internal/search"
 	"skillhub/backend/internal/skill"
@@ -22,6 +23,7 @@ type Dependencies struct {
 	SkillService     *skill.Service
 	AdminService     *admin.Service
 	SearchService    *search.Service
+	LabelService     *label.Service
 }
 
 // NewRouter builds the HTTP API router.
@@ -72,6 +74,18 @@ func NewRouter(cfg config.Config, deps Dependencies) http.Handler {
 	if deps.AuthService != nil && deps.AdminService != nil {
 		reviewHandler := handlers.NewReviewHandler(deps.AdminService)
 		r.With(appmiddleware.RequireAuth(deps.AuthService)).Post("/api/v1/reviews/{taskID}/approve", reviewHandler.Approve)
+	}
+
+	if deps.AuthService != nil && deps.LabelService != nil {
+		labelAdmin := handlers.NewLabelAdminHandler(deps.LabelService)
+		r.Route("/api/v1/admin/labels", func(ar chi.Router) {
+			ar.Use(appmiddleware.RequireAuth(deps.AuthService))
+			ar.Get("/", labelAdmin.List)
+			ar.Post("/", labelAdmin.Create)
+			ar.Put("/sort-order", labelAdmin.SortOrder)
+			ar.Put("/{slug}", labelAdmin.Update)
+			ar.Delete("/{slug}", labelAdmin.Delete)
+		})
 	}
 
 	return r

@@ -91,6 +91,6 @@ describe('resolveNotificationTarget', () => {
       entityId: 55,
       status: 'UNREAD',
       createdAt: '2026-03-20T00:00:00Z',
-    })).toBe('/dashboard')
+    })).toBe('/dashboard/skills')
   })
 })

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   CENTERED_DASHBOARD_CONTENT_CLASS_NAME,
+  CENTERED_DASHBOARD_PUBLISH_CONTENT_CLASS_NAME,
   CENTERED_MAIN_CLASS_NAME,
   CENTERED_SEARCH_CONTENT_CLASS_NAME,
   DEFAULT_MAIN_CLASS_NAME,
@@ -34,6 +35,16 @@ describe('getAppMainContentLayout', () => {
       contentClassName: CENTERED_DASHBOARD_CONTENT_CLASS_NAME,
     })
     expect(layout.contentClassName).toContain('max-w-[1200px]')
+  })
+
+  it('uses a wider content frame on the publish skill page', () => {
+    const layout = getAppMainContentLayout('/dashboard/publish')
+
+    expect(layout).toEqual({
+      mainClassName: CENTERED_MAIN_CLASS_NAME,
+      contentClassName: CENTERED_DASHBOARD_PUBLISH_CONTENT_CLASS_NAME,
+    })
+    expect(layout.contentClassName).toContain('max-w-[1440px]')
   })
 
   it('leaves other non-landing routes on the default full-width app content layout', () => {
