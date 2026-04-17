@@ -15,7 +15,7 @@ vi.mock('react-i18next', async () => {
     useTranslation: () => ({
       t: (key: string, values?: Record<string, string>) =>
         values?.skill ? `${key}:${values.skill}` : key,
-      i18n: { language: 'zh' },
+      i18n: { language: 'en' },
     }),
   }
 })

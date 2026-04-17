@@ -22,62 +22,58 @@ function parseBody(bodyJson?: string): NotificationBody {
   }
 }
 
-function isChinese(language: string) {
-  return language.toLowerCase().startsWith('zh')
-}
-
-export function resolveNotificationDisplay(item: NotificationItem, language: string): NotificationDisplay {
-  const zh = isChinese(language)
+export function resolveNotificationDisplay(item: NotificationItem, _language?: string): NotificationDisplay {
+  void _language
   const body = parseBody(item.bodyJson)
   const skillName = body.skillName ?? ''
   const version = body.version ?? ''
-  const versionSuffix = version ? (zh ? `（${version}）` : ` (${version})`) : ''
+  const versionSuffix = version ? ` (${version})` : ''
 
   switch (item.eventType) {
     case 'REVIEW_SUBMITTED':
       return {
-        title: zh ? '技能审核提交' : 'Review submitted',
-        description: skillName ? (zh ? `${skillName}${versionSuffix} 已提交审核。` : `${skillName}${versionSuffix} was submitted for review.`) : '',
+        title: 'Review submitted',
+        description: skillName ? `${skillName}${versionSuffix} was submitted for review.` : '',
       }
     case 'REVIEW_APPROVED':
       return {
-        title: zh ? '技能审核通过' : 'Review approved',
-        description: skillName ? (zh ? `${skillName}${versionSuffix} 已审核通过。` : `${skillName}${versionSuffix} was approved.`) : '',
+        title: 'Review approved',
+        description: skillName ? `${skillName}${versionSuffix} was approved.` : '',
       }
     case 'REVIEW_REJECTED':
       return {
-        title: zh ? '技能审核驳回' : 'Review rejected',
-        description: skillName ? (zh ? `${skillName}${versionSuffix} 审核未通过。` : `${skillName}${versionSuffix} was rejected.`) : '',
+        title: 'Review rejected',
+        description: skillName ? `${skillName}${versionSuffix} was rejected.` : '',
       }
     case 'PROMOTION_SUBMITTED':
       return {
-        title: zh ? '技能推广提交' : 'Promotion submitted',
-        description: skillName ? (zh ? `${skillName}${versionSuffix} 已提交推广。` : `${skillName}${versionSuffix} was submitted for promotion.`) : '',
+        title: 'Promotion submitted',
+        description: skillName ? `${skillName}${versionSuffix} was submitted for promotion.` : '',
       }
     case 'PROMOTION_APPROVED':
       return {
-        title: zh ? '技能推广通过' : 'Promotion approved',
-        description: skillName ? (zh ? `${skillName}${versionSuffix} 推广已通过。` : `${skillName}${versionSuffix} promotion was approved.`) : '',
+        title: 'Promotion approved',
+        description: skillName ? `${skillName}${versionSuffix} promotion was approved.` : '',
       }
     case 'PROMOTION_REJECTED':
       return {
-        title: zh ? '技能推广驳回' : 'Promotion rejected',
-        description: skillName ? (zh ? `${skillName}${versionSuffix} 推广未通过。` : `${skillName}${versionSuffix} promotion was rejected.`) : '',
+        title: 'Promotion rejected',
+        description: skillName ? `${skillName}${versionSuffix} promotion was rejected.` : '',
       }
     case 'REPORT_SUBMITTED':
       return {
-        title: zh ? '技能举报提交' : 'Report submitted',
-        description: skillName ? (zh ? `${skillName} 收到新的举报。` : `${skillName} received a new report.`) : '',
+        title: 'Report submitted',
+        description: skillName ? `${skillName} received a new report.` : '',
       }
     case 'REPORT_RESOLVED':
       return {
-        title: zh ? '技能举报已处理' : 'Report resolved',
-        description: skillName ? (zh ? `${skillName} 的举报已处理。` : `${skillName} report has been resolved.`) : '',
+        title: 'Report resolved',
+        description: skillName ? `${skillName} report has been resolved.` : '',
       }
     case 'SKILL_PUBLISHED':
       return {
-        title: zh ? '技能发布成功' : 'Skill published',
-        description: skillName ? (zh ? `${skillName}${versionSuffix} 已发布。` : `${skillName}${versionSuffix} was published.`) : '',
+        title: 'Skill published',
+        description: skillName ? `${skillName}${versionSuffix} was published.` : '',
       }
     default:
       return {

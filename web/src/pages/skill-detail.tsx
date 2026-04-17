@@ -773,7 +773,7 @@ export function SkillDetailPage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="gap-2 rounded-full border-border/70 bg-background/90 px-5 shadow-sm backdrop-blur-sm"
+                        className="gap-2 rounded-lg border-border/70 bg-background/90 px-5 shadow-sm backdrop-blur-sm"
                         aria-expanded={isOverviewExpanded}
                         onClick={handleToggleOverview}
                       >

@@ -13,7 +13,7 @@ import { Input } from '@/shared/ui/input'
  * the password-only login flow supported by the Go backend.
  */
 export function LoginPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const search = useSearch({ from: '/login' })
   const loginMutation = usePasswordLogin()
@@ -21,7 +21,6 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<{ username?: string, password?: string }>({})
-  const isChinese = i18n.resolvedLanguage?.split('-')[0] === 'zh'
 
   const returnTo = search.returnTo && search.returnTo.startsWith('/') ? search.returnTo : '/dashboard/skills'
   const disabledMessage = search.reason === 'accountDisabled' ? t('apiError.auth.accountDisabled') : null
@@ -135,13 +134,13 @@ export function LoginPage() {
 
         <p className="text-center text-xs text-muted-foreground">
           {t('login.agreementPrefix')}
-          {isChinese ? null : ' '}
+          {' '}
           <Link to="/terms" className="text-primary hover:underline">
             {t('login.terms')}
           </Link>
-          {isChinese ? null : ' '}
+          {' '}
           {t('login.and')}
-          {isChinese ? null : ' '}
+          {' '}
           <Link to="/privacy" className="text-primary hover:underline">
             {t('login.privacy')}
           </Link>

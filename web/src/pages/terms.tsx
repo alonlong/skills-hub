@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next'
 import { LegalDocument } from '@/shared/components/legal-document'
 
 const termsDocuments = {
@@ -167,8 +166,5 @@ const termsDocuments = {
 } as const
 
 export function TermsOfServicePage() {
-  const { i18n } = useTranslation()
-  const language = i18n.resolvedLanguage?.split('-')[0] === 'zh' ? 'zh' : 'en'
-
-  return <LegalDocument {...termsDocuments[language]} />
+  return <LegalDocument {...termsDocuments.en} />
 }

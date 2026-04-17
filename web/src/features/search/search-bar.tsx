@@ -52,30 +52,30 @@ export function SearchBar({ defaultValue = '', value, placeholder, isSearching =
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-3 glass-strong p-2 rounded-xl">
+    <form onSubmit={handleSubmit} className="flex gap-2 items-center">
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         <Input
           type="text"
           value={currentQuery}
           onChange={(e) => handleChange(e.target.value)}
           maxLength={MAX_SEARCH_QUERY_LENGTH}
           placeholder={placeholder || t('searchBar.placeholder')}
-          className="pl-10 pr-10 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 h-12"
+          className="pl-9 pr-9 h-11 rounded-lg"
         />
         {currentQuery ? (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-3 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground"
+            className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground"
             aria-label={t('searchBar.clear')}
             title={t('searchBar.clear')}
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
         ) : null}
       </div>
-      <Button type="submit" size="lg" className="px-8 min-w-28" disabled={isSearching}>
+      <Button type="submit" className="h-11 px-6 min-w-24" disabled={isSearching}>
         {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : t('searchBar.button')}
       </Button>
     </form>

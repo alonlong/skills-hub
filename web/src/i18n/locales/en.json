@@ -457,7 +457,7 @@
     "empty": "No promotion requests"
   },
   "adminUsers": {
-    "title": "User Management",
+    "title": "Users",
     "subtitle": "Manage platform users and permissions",
     "searchLabel": "Search users",
     "searchPlaceholder": "Search username or email...",
@@ -500,7 +500,7 @@
     "confirmEnable": "Are you sure you want to enable user {{username}}?"
   },
   "adminLabels": {
-    "title": "Label Management",
+    "title": "Labels",
     "subtitle": "Manage label definitions, visibility, display names, and filter ordering.",
     "createAction": "Create Label",
     "editAction": "Edit",
@@ -1005,8 +1005,8 @@
     "menu": {
       "myNamespaces": "My Namespaces",
       "stars": "Starred",
-      "users": "User Management",
-      "labels": "Label Management",
+      "users": "Users",
+      "labels": "Labels",
       "security": "Security Settings",
       "notifications": "Notification Settings",
       "accounts": "Account Merge",

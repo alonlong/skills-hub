@@ -25,12 +25,12 @@ describe('localized label query keys', () => {
     expect(getSkillDetailQueryKey('team', 'demo')).toEqual(['skills', 'team', 'demo', 'en'])
     expect(getAdminLabelDefinitionsQueryKey()).toEqual(['labels', 'admin', 'en'])
 
-    i18n.language = 'zh-CN'
-    i18n.resolvedLanguage = 'zh-CN'
+    i18n.language = 'en-US'
+    i18n.resolvedLanguage = 'en-US'
 
-    expect(getVisibleLabelsQueryKey()).toEqual(['labels', 'visible', 'zh-CN'])
-    expect(getSkillLabelsQueryKey('team', 'demo')).toEqual(['labels', 'skill', 'team', 'demo', 'zh-CN'])
-    expect(getSkillDetailQueryKey('team', 'demo')).toEqual(['skills', 'team', 'demo', 'zh-CN'])
-    expect(getAdminLabelDefinitionsQueryKey()).toEqual(['labels', 'admin', 'zh-CN'])
+    expect(getVisibleLabelsQueryKey()).toEqual(['labels', 'visible', 'en-US'])
+    expect(getSkillLabelsQueryKey('team', 'demo')).toEqual(['labels', 'skill', 'team', 'demo', 'en-US'])
+    expect(getSkillDetailQueryKey('team', 'demo')).toEqual(['skills', 'team', 'demo', 'en-US'])
+    expect(getAdminLabelDefinitionsQueryKey()).toEqual(['labels', 'admin', 'en-US'])
   })
 })

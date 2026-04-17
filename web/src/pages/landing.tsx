@@ -43,7 +43,7 @@ export function LandingPage() {
         {/* Search box */}
         <div className="w-full max-w-[min(100%,54.6rem)] mb-6">
           <div
-            className="flex items-center rounded-full border shadow-sm px-5 py-3.5 transition-colors focus-within:border-primary/60"
+            className="flex items-center rounded-xl border shadow-sm px-5 py-3.5 transition-colors focus-within:border-primary/60"
             style={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
           >
             <SearchIcon className="w-5 h-5 flex-shrink-0 mr-3" style={{ color: 'hsl(var(--text-placeholder))' }} strokeWidth={1.75} />
@@ -66,14 +66,14 @@ export function LandingPage() {
           <Link
             to="/search"
             search={{ q: '', sort: 'relevance', page: 0 }}
-            className="px-6 py-2.5 rounded-full text-sm font-medium shadow-sm transition-opacity hover:opacity-90"
+            className="px-6 py-2.5 rounded-lg text-sm font-medium shadow-sm transition-opacity hover:opacity-90"
             style={{ background: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))' }}
           >
             {t('landing.hero.exploreSkills')}
           </Link>
           <Link
             to="/dashboard/publish"
-            className="px-6 py-2.5 rounded-full text-sm font-medium border transition-colors hover:border-primary/40"
+            className="px-6 py-2.5 rounded-lg text-sm font-medium border transition-colors hover:border-primary/40"
             style={{
               background: 'hsl(var(--card))',
               borderColor: 'hsl(var(--border))',

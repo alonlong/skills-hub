@@ -140,15 +140,57 @@
       "type": "file"
     },
     {
+      "path": "web/src",
+      "accessCount": 6,
+      "lastAccessed": 1776387299662,
+      "type": "directory"
+    },
+    {
       "path": "web/src/index.css",
       "accessCount": 5,
       "lastAccessed": 1776386394340,
       "type": "file"
     },
     {
+      "path": "web/src/i18n/locales/en.json",
+      "accessCount": 5,
+      "lastAccessed": 1776387116529,
+      "type": "directory"
+    },
+    {
+      "path": "web/src/i18n/locales/zh.json",
+      "accessCount": 5,
+      "lastAccessed": 1776387118739,
+      "type": "directory"
+    },
+    {
       "path": "web/src/pages/landing.tsx",
       "accessCount": 4,
       "lastAccessed": 1776386652018,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/layout.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776387344539,
+      "type": "file"
+    },
+    {
+      "path": "web/src/pages/login.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776387370278,
+      "type": "file"
+    },
+    {
+      "path": "web/src/pages/privacy.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776387380695,
+      "type": "file"
+    },
+    {
+      "path": "web/src/pages/terms.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776387381478,
       "type": "file"
     },
     {
@@ -158,21 +200,15 @@
       "type": "file"
     },
     {
+      "path": "web/index.html",
+      "accessCount": 3,
+      "lastAccessed": 1776387341368,
+      "type": "file"
+    },
+    {
       "path": "web/src/shared/ui/button.tsx",
       "accessCount": 2,
       "lastAccessed": 1776386323910,
-      "type": "file"
-    },
-    {
-      "path": "web/src/app/layout.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1776386349734,
-      "type": "file"
-    },
-    {
-      "path": "web/index.html",
-      "accessCount": 2,
-      "lastAccessed": 1776386387116,
       "type": "file"
     },
     {
@@ -194,10 +230,34 @@
       "type": "file"
     },
     {
-      "path": "web/src",
+      "path": "web/src/pages/admin/users.tsx",
       "accessCount": 2,
-      "lastAccessed": 1776386466022,
-      "type": "directory"
+      "lastAccessed": 1776387082147,
+      "type": "file"
+    },
+    {
+      "path": "web/src/i18n/config.ts",
+      "accessCount": 2,
+      "lastAccessed": 1776387337617,
+      "type": "file"
+    },
+    {
+      "path": "web/src/shared/lib/api-error.ts",
+      "accessCount": 2,
+      "lastAccessed": 1776387388272,
+      "type": "file"
+    },
+    {
+      "path": "web/src/features/notification/notification-content.ts",
+      "accessCount": 2,
+      "lastAccessed": 1776387400485,
+      "type": "file"
+    },
+    {
+      "path": "web/src/features/notification/notification-dropdown.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776387404786,
+      "type": "file"
     },
     {
       "path": "web/src/shared/components/quick-start.tsx",
@@ -239,6 +299,18 @@
       "path": "web",
       "accessCount": 1,
       "lastAccessed": 1776386377902,
+      "type": "directory"
+    },
+    {
+      "path": "web/src/shared/components/user-menu.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776387093483,
+      "type": "file"
+    },
+    {
+      "path": "web/src/i18n/locales",
+      "accessCount": 1,
+      "lastAccessed": 1776387098394,
       "type": "directory"
     }
   ],

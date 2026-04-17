@@ -2,7 +2,6 @@ import { Suspense, useEffect, useState } from 'react'
 import { Outlet, Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/use-auth'
-import { LanguageSwitcher } from '@/shared/components/language-switcher'
 import { UserMenu } from '@/shared/components/user-menu'
 import { NotificationBell } from '@/features/notification/notification-bell'
 import { getAppHeaderClassName } from './layout-header-style'
@@ -112,14 +111,13 @@ export function Layout() {
           {user && (
             <Link
               to="/dashboard/publish"
-              className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium shadow-sm transition-opacity hover:opacity-90"
+              className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition-opacity hover:opacity-90"
               style={{ background: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))' }}
             >
               <span className="text-base leading-none">+</span>
               {t('nav.publish')}
             </Link>
           )}
-          <LanguageSwitcher />
           {user && <NotificationBell />}
           {isLoading ? null : user ? (
             <UserMenu user={user} />
@@ -127,7 +125,7 @@ export function Layout() {
             <Link
               to="/login"
               search={{ returnTo: '' }}
-              className="rounded-full px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
+              className="rounded-lg px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
               style={{ border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))', background: 'hsl(var(--card))' }}
             >
               {t('nav.login')}
