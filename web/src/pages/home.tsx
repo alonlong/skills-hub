@@ -35,8 +35,8 @@ export function HomePage() {
       {/* Hero Section */}
       <div className="text-center space-y-8 py-16 animate-fade-up">
         <div className="space-y-4">
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-brand-gradient leading-tight">
-            SkillHub
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-tight" style={{ color: 'hsl(var(--foreground))' }}>
+            SkillsHub
           </h1>
           <p className="text-xl md:text-2xl max-w-2xl mx-auto" style={{ color: 'hsl(var(--text-secondary))' }}>
             {t('home.subtitle')}

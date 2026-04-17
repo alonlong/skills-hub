@@ -51,8 +51,8 @@ function CompactCopyButton({ text }: { text: string }) {
       onClick={handleCopy}
       aria-label={label}
       title={label}
-      className="absolute right-2.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border bg-white transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
-      style={{ borderColor: 'hsl(var(--border))', color: 'hsl(var(--foreground))' }}
+      className="absolute right-2.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border transition-colors hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
+      style={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--foreground))' }}
     >
       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
     </button>
@@ -88,24 +88,24 @@ export function LandingQuickStartSection() {
   const currentTab = tabs.find((tab) => tab.id === activeTab) ?? tabs[0]
 
   return (
-    <section className="relative z-10 w-full px-6 pt-6 pb-12 md:pt-8 md:pb-14" style={{ background: 'var(--bg-page, hsl(var(--background)))' }}>
+    <section className="relative z-10 w-full px-6 pt-4 pb-4 md:pt-6 md:pb-6" style={{ background: 'var(--bg-page, hsl(var(--background)))' }}>
       <div className="mx-auto max-w-[min(100%,72.8rem)]">
-        <div className="text-center mb-7 md:mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3" style={{ color: 'hsl(var(--foreground))' }}>
+        <div className="text-center mb-3 md:mb-4">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-1.5" style={{ color: 'hsl(var(--foreground))' }}>
             {t('landing.quickStart.title')}
           </h2>
-          <p className="text-base md:text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: 'hsl(var(--text-secondary))' }}>
+          <p className="text-sm md:text-base max-w-2xl mx-auto leading-snug" style={{ color: 'hsl(var(--text-secondary))' }}>
             {t('landing.quickStart.description', { defaultValue: t('landing.quickStart.subtitle') })}
           </p>
         </div>
 
         <div
-          className="mx-auto max-w-[min(100%,54.6rem)] rounded-[28px] border bg-white p-3 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.25)]"
-          style={{ borderColor: 'hsl(var(--border-card))' }}
+          className="mx-auto max-w-[min(100%,54.6rem)] rounded-[24px] border p-2.5 shadow-[0_18px_40px_-24px_rgba(120,60,40,0.20)]"
+          style={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border-card))' }}
         >
           <div
             className="grid grid-cols-2 gap-2 rounded-2xl p-1.5"
-            style={{ background: 'linear-gradient(180deg, rgba(248,250,252,0.98) 0%, rgba(241,245,249,0.92) 100%)' }}
+            style={{ background: 'hsl(var(--muted) / 0.6)' }}
           >
             {tabs.map((tab) => {
               const isActive = tab.id === currentTab.id
@@ -117,11 +117,11 @@ export function LandingQuickStartSection() {
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
                   aria-pressed={isActive}
-                  className="flex min-h-11 items-center justify-center gap-2 rounded-[14px] px-4 py-3 text-base font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
+                  className="flex min-h-9 items-center justify-center gap-2 rounded-[14px] px-3 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
                   style={{
-                    background: isActive ? 'rgba(255,255,255,0.96)' : 'transparent',
+                    background: isActive ? 'hsl(var(--card))' : 'transparent',
                     color: isActive ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
-                    boxShadow: isActive ? '0 6px 18px rgba(15, 23, 42, 0.08)' : 'none',
+                    boxShadow: isActive ? '0 4px 14px rgba(120,60,40,0.10)' : 'none',
                   }}
                 >
                   <Icon className="h-4 w-4" strokeWidth={1.75} />
@@ -131,22 +131,22 @@ export function LandingQuickStartSection() {
             })}
           </div>
 
-          <div className="px-4 pb-4 pt-8 md:px-8 md:pb-6 md:pt-9">
+          <div className="px-3 pb-3 pt-4 md:px-6 md:pb-4 md:pt-5">
             <p
-              className="mx-auto mb-6 max-w-xl text-center text-base font-medium leading-relaxed md:text-lg"
+              className="mx-auto mb-3 max-w-xl text-center text-sm font-medium leading-snug md:text-base"
               style={{ color: 'hsl(var(--foreground))' }}
             >
               {currentTab.description}
             </p>
 
             <div
-              className="relative rounded-2xl border bg-slate-50/90 px-4 py-3 pr-14 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
-              style={{ borderColor: 'hsl(var(--border))' }}
+              className="relative rounded-2xl border px-4 py-2.5 pr-14"
+              style={{ background: 'hsl(var(--muted) / 0.5)', borderColor: 'hsl(var(--border))' }}
             >
               <div className="min-w-0">
                 <code
-                  className="block font-mono text-sm md:text-base break-all whitespace-pre-wrap leading-relaxed"
-                  style={{ color: currentTab.id === 'agent' ? '#16A34A' : '#0F172A' }}
+                  className="block font-mono text-xs md:text-sm break-all whitespace-pre-wrap leading-relaxed"
+                  style={{ color: currentTab.id === 'agent' ? 'hsl(var(--primary))' : 'hsl(var(--foreground))' }}
                 >
                   {currentTab.command}
                 </code>

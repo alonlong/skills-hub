@@ -4,76 +4,75 @@
 
 @layer base {
   :root {
-    /* SkillHub — 浅色主题 (indigo-violet brand) */
-    --background: 210 20% 98%;
-    --foreground: 220 26% 14%;
+    /* SkillsHub — warm cream + coral (ClawHub-inspired) */
+    --background: 30 40% 94%;
+    --foreground: 25 22% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 220 26% 14%;
+    --card-foreground: 25 22% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 26% 14%;
-    /* Indigo primary (#6A6DFF) */
-    --primary: 239 100% 71%;
+    --popover-foreground: 25 22% 12%;
+    /* Coral/terracotta primary (#CD5E4A) */
+    --primary: 10 55% 54%;
     --primary-foreground: 0 0% 100%;
-    /* Surface tones */
-    --secondary: 210 30% 96%;
-    --secondary-foreground: 220 26% 14%;
-    --muted: 210 25% 95%;
-    --muted-foreground: 215 14% 46%;
-    /* Violet accent (#B85EFF) */
-    --accent: 271 100% 68%;
+    /* Warm surface tones */
+    --secondary: 30 30% 90%;
+    --secondary-foreground: 25 22% 12%;
+    --muted: 30 30% 92%;
+    --muted-foreground: 25 15% 42%;
+    --accent: 10 55% 54%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 239 100% 71%;
-    --radius: 0.75rem;
+    --border: 30 30% 86%;
+    --input: 30 30% 86%;
+    --ring: 10 55% 54%;
+    --radius: 0.875rem;
 
     /* Extended palette */
-    --surface-glass: 210 30% 97%;
-    --glow-primary: 239 100% 71%;
-    --glow-accent: 271 100% 68%;
-    --success: 160 60% 45%;
-    --warning: 38 92% 58%;
+    --surface-glass: 30 35% 95%;
+    --glow-primary: 10 55% 54%;
+    --glow-accent: 20 65% 62%;
+    --success: 160 55% 40%;
+    --warning: 32 85% 55%;
 
-    /* Brand */
-    --brand-start: #6A6DFF;
-    --brand-end: #B85EFF;
-    --brand-gradient: linear-gradient(135deg, #6A6DFF 0%, #B85EFF 100%);
+    /* Brand — solid coral (no gradient) */
+    --brand-start: #CD5E4A;
+    --brand-end: #B84C38;
+    --brand-gradient: linear-gradient(135deg, #D56653 0%, #B84C38 100%);
 
     /* Text semantic */
-    --text-secondary: 215 19% 35%;
-    --text-muted: 215 14% 46%;
-    --text-placeholder: 213 12% 63%;
+    --text-secondary: 25 15% 30%;
+    --text-muted: 25 12% 45%;
+    --text-placeholder: 25 10% 60%;
 
     /* Border semantic */
-    --border-card: 220 26% 94%;
+    --border-card: 30 30% 88%;
   }
 
   .dark {
-    /* Dark theme (preserved, not default) */
-    --background: 222 47% 6%;
-    --foreground: 210 40% 96%;
-    --card: 222 40% 9%;
-    --card-foreground: 210 40% 96%;
-    --popover: 222 40% 9%;
-    --popover-foreground: 210 40% 96%;
-    --primary: 239 100% 75%;
-    --primary-foreground: 222 47% 6%;
-    --secondary: 222 30% 13%;
-    --secondary-foreground: 210 30% 85%;
-    --muted: 222 25% 15%;
-    --muted-foreground: 215 20% 55%;
-    --accent: 271 100% 72%;
+    /* Dark theme — warm charcoal + coral */
+    --background: 25 15% 8%;
+    --foreground: 30 20% 92%;
+    --card: 25 12% 12%;
+    --card-foreground: 30 20% 92%;
+    --popover: 25 12% 12%;
+    --popover-foreground: 30 20% 92%;
+    --primary: 10 60% 60%;
+    --primary-foreground: 25 15% 8%;
+    --secondary: 25 10% 16%;
+    --secondary-foreground: 30 20% 88%;
+    --muted: 25 10% 18%;
+    --muted-foreground: 30 10% 60%;
+    --accent: 10 60% 60%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 222 20% 18%;
-    --input: 222 20% 18%;
-    --ring: 239 100% 75%;
-    --surface-glass: 222 35% 11%;
-    --glow-primary: 239 100% 75%;
-    --glow-accent: 271 100% 72%;
+    --border: 25 10% 22%;
+    --input: 25 10% 22%;
+    --ring: 10 60% 60%;
+    --surface-glass: 25 12% 14%;
+    --glow-primary: 10 60% 60%;
+    --glow-accent: 20 65% 62%;
   }
 }
 
@@ -92,7 +91,8 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Syne', 'IBM Plex Sans', system-ui, sans-serif;
+    font-family: 'Schibsted Grotesk', 'Inter', system-ui, sans-serif;
+    letter-spacing: -0.01em;
   }
 
   code, pre, kbd {
@@ -306,6 +306,7 @@
 
 /* ─── Brand gradient utilities ─── */
 .text-brand-gradient {
+  color: hsl(var(--primary));
   background: var(--brand-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -313,7 +314,7 @@
 }
 
 .bg-brand-gradient {
-  background: var(--brand-gradient);
+  background: hsl(var(--primary));
 }
 
 /* ─── Handle tag (namespace @ pill) ─── */
@@ -479,4 +480,17 @@
 /* ─── Hero input placeholder ─── */
 .hero-input::placeholder {
   color: hsl(var(--text-placeholder));
+}
+
+/* ─── Landing viewport (fit-to-screen, no scroll) ─── */
+.landing-viewport {
+  min-height: calc(100vh - var(--app-header-height, 72px));
+}
+
+body:has(.landing-viewport) {
+  overflow: hidden;
+}
+
+html:has(.landing-viewport) {
+  overflow: hidden;
 }

@@ -24,26 +24,29 @@ export function LandingPage() {
   }
 
   return (
-    <>
+    <div className="landing-viewport flex flex-col justify-center">
       {/* Hero Section */}
-      <main ref={heroView.ref} className={`relative z-10 flex flex-col items-center pt-16 pb-6 px-4 md:pt-24 md:pb-8 scroll-fade-up${heroView.inView ? ' in-view' : ''}`}>
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-brand-gradient mb-5">
-          SkillHub
-        </h1>
-        <h2
-          className="text-2xl md:text-3xl font-semibold tracking-tight text-center text-balance mb-10 max-w-3xl px-2"
+      <main ref={heroView.ref} className={`relative z-10 flex flex-col items-center px-4 scroll-fade-up${heroView.inView ? ' in-view' : ''}`}>
+        <h1
+          className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-center text-balance mb-4 max-w-3xl leading-[1.1]"
           style={{ color: 'hsl(var(--foreground))' }}
         >
-          {t('landing.hero.title')}
-        </h2>
+          {t('landing.hero.title', { defaultValue: 'The skill dock for sharp agents' })}
+        </h1>
+        <p
+          className="text-base md:text-lg text-center text-balance mb-8 max-w-xl px-2 leading-relaxed"
+          style={{ color: 'hsl(var(--text-secondary))' }}
+        >
+          {t('landing.hero.subtitle', { defaultValue: 'Browse, install, and publish skill packs. Versioned, searchable, open.' })}
+        </p>
 
         {/* Search box */}
-        <div className="w-full max-w-[min(100%,54.6rem)] mb-8">
+        <div className="w-full max-w-[min(100%,54.6rem)] mb-6">
           <div
-            className="flex items-center bg-white rounded-xl border shadow-sm px-5 py-3.5"
-            style={{ borderColor: 'hsl(var(--border))' }}
+            className="flex items-center rounded-full border shadow-sm px-5 py-3.5 transition-colors focus-within:border-primary/60"
+            style={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
           >
-            <SearchIcon className="w-5 h-5 flex-shrink-0 mr-3" style={{ color: 'hsl(var(--text-placeholder))' }} strokeWidth={1.5} />
+            <SearchIcon className="w-5 h-5 flex-shrink-0 mr-3" style={{ color: 'hsl(var(--text-placeholder))' }} strokeWidth={1.75} />
             <input
               type="text"
               placeholder={t('landing.hero.searchPlaceholder')}
@@ -59,21 +62,22 @@ export function LandingPage() {
         </div>
 
         {/* CTA buttons */}
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="flex flex-wrap justify-center gap-3">
           <Link
             to="/search"
             search={{ q: '', sort: 'relevance', page: 0 }}
-            className="px-8 py-3.5 rounded-xl text-base font-medium text-white bg-brand-gradient shadow-sm hover:opacity-95 transition-opacity"
+            className="px-6 py-2.5 rounded-full text-sm font-medium shadow-sm transition-opacity hover:opacity-90"
+            style={{ background: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))' }}
           >
             {t('landing.hero.exploreSkills')}
           </Link>
           <Link
             to="/dashboard/publish"
-            className="px-8 py-3.5 rounded-xl text-base font-medium border transition-colors"
+            className="px-6 py-2.5 rounded-full text-sm font-medium border transition-colors hover:border-primary/40"
             style={{
-              background: 'hsl(var(--secondary))',
-              borderColor: 'hsl(var(--muted-foreground))',
-              color: 'hsl(var(--muted-foreground))',
+              background: 'hsl(var(--card))',
+              borderColor: 'hsl(var(--border))',
+              color: 'hsl(var(--foreground))',
             }}
           >
             {t('landing.hero.publishSkill', { defaultValue: '开始构建' })}
@@ -85,6 +89,6 @@ export function LandingPage() {
       <div ref={quickStartView.ref} className={`scroll-fade-up${quickStartView.inView ? ' in-view' : ''}`}>
         <LandingQuickStartSection />
       </div>
-    </>
+    </div>
   )
 }

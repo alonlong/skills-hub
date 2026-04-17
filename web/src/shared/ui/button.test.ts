@@ -4,7 +4,7 @@ import { buttonVariants } from './button'
 describe('buttonVariants', () => {
   it('applies default variant and size classes', () => {
     const classes = buttonVariants()
-    expect(classes).toContain('bg-brand-gradient')
+    expect(classes).toContain('bg-primary')
     expect(classes).toContain('h-10')
     expect(classes).toContain('px-5')
   })
@@ -17,7 +17,7 @@ describe('buttonVariants', () => {
   it('applies outline variant classes', () => {
     const classes = buttonVariants({ variant: 'outline' })
     expect(classes).toContain('border')
-    expect(classes).toContain('bg-transparent')
+    expect(classes).toContain('bg-card')
   })
 
   it('applies secondary variant classes', () => {

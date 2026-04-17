@@ -1,0 +1,246 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776385100479,
+  "projectRoot": "/Users/longwu/Project/ai-brains/skills-hub",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Go",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "go.mod"
+        ]
+      },
+      {
+        "name": "C/C++",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "Makefile"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "go",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "make build",
+    "testCommand": "make test",
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "bin"
+    ],
+    "gitBranches": {
+      "defaultBranch": "master",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "bin": {
+      "path": "bin",
+      "purpose": "Executable scripts",
+      "fileCount": 1,
+      "lastAccessed": 1776385100463,
+      "keyFiles": [
+        "skillhub"
+      ]
+    },
+    "cmd": {
+      "path": "cmd",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1776385100469,
+      "keyFiles": []
+    },
+    "data": {
+      "path": "data",
+      "purpose": "Data files",
+      "fileCount": 0,
+      "lastAccessed": 1776385100470,
+      "keyFiles": []
+    },
+    "internal": {
+      "path": "internal",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1776385100471,
+      "keyFiles": []
+    },
+    "migrations": {
+      "path": "migrations",
+      "purpose": "Database migrations",
+      "fileCount": 1,
+      "lastAccessed": 1776385100471,
+      "keyFiles": [
+        "001-schema.sql"
+      ]
+    },
+    "web": {
+      "path": "web",
+      "purpose": null,
+      "fileCount": 13,
+      "lastAccessed": 1776385100474,
+      "keyFiles": [
+        "Dockerfile",
+        "PREVIEW.md",
+        "components.json",
+        "index.html",
+        "package.json"
+      ]
+    },
+    "internal/config": {
+      "path": "internal/config",
+      "purpose": "Configuration files",
+      "fileCount": 2,
+      "lastAccessed": 1776385100478,
+      "keyFiles": [
+        "config.go",
+        "config_test.go"
+      ]
+    },
+    "web/dist": {
+      "path": "web/dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 5,
+      "lastAccessed": 1776385100479,
+      "keyFiles": [
+        "favicon.svg",
+        "index.html",
+        "robots.txt"
+      ]
+    },
+    "web/node_modules": {
+      "path": "web/node_modules",
+      "purpose": "Dependencies",
+      "fileCount": 2,
+      "lastAccessed": 1776385100479,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "web/src/shared/components/landing-quick-start.tsx",
+      "accessCount": 6,
+      "lastAccessed": 1776386425812,
+      "type": "file"
+    },
+    {
+      "path": "web/src/index.css",
+      "accessCount": 5,
+      "lastAccessed": 1776386394340,
+      "type": "file"
+    },
+    {
+      "path": "web/src/pages/landing.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776386652018,
+      "type": "file"
+    },
+    {
+      "path": "web/src/shared/ui/button.test.ts",
+      "accessCount": 3,
+      "lastAccessed": 1776386483236,
+      "type": "file"
+    },
+    {
+      "path": "web/src/shared/ui/button.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776386323910,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/layout.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776386349734,
+      "type": "file"
+    },
+    {
+      "path": "web/index.html",
+      "accessCount": 2,
+      "lastAccessed": 1776386387116,
+      "type": "file"
+    },
+    {
+      "path": "web/src/pages/landing.test.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776386447028,
+      "type": "file"
+    },
+    {
+      "path": "web/src/pages/home.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776386454852,
+      "type": "file"
+    },
+    {
+      "path": "web/src/pages/home.test.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776386461512,
+      "type": "file"
+    },
+    {
+      "path": "web/src",
+      "accessCount": 2,
+      "lastAccessed": 1776386466022,
+      "type": "directory"
+    },
+    {
+      "path": "web/src/shared/components/quick-start.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776385170005,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/router.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776385177996,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/layout-main-content.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776385178782,
+      "type": "file"
+    },
+    {
+      "path": "web/src/app/layout-header-style.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776385185481,
+      "type": "file"
+    },
+    {
+      "path": "web/src/shared/components/language-switcher.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776386258540,
+      "type": "file"
+    },
+    {
+      "path": "web/tailwind.config.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776386258842,
+      "type": "file"
+    },
+    {
+      "path": "web",
+      "accessCount": 1,
+      "lastAccessed": 1776386377902,
+      "type": "directory"
+    }
+  ],
+  "userDirectives": []
+}
